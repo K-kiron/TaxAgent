@@ -15,6 +15,7 @@ src/taxagent/
     session.py         # TaxSession — multi-turn: threaded history + accumulating fact store
     render.py          # Recommendation -> 8-part markdown (rendered, never hand-written)
   persistence.py       # UserProfile + AsyncProfileWriter (async, coalescing, atomic disk writes)
+  web/                 # FastAPI chat app (app.py) + single-page UI (static/index.html)
   evals/
     schemas.py         # GoldenScenario (tax_year, maps_to_rule_cards, smoke_*, safety, ...)
     scenarios.py       # the 5 canonical golden scenarios (4 advisory + 1 adversarial refusal)
@@ -50,6 +51,10 @@ bash infra/serve_35b_mvp.sh          # TP=4 on GPUs 1-4, ~47% each, OpenAI API o
 
 # tests
 .venv/bin/python -m pytest -q         # unit (no LLM) + live serve smoke (skips if :8011 down)
+
+# chat UI (web) — needs the model serve above; talks to it via TAXAGENT_BASE_URL
+.venv/bin/pip install -e '.[web]'   # first time: installs fastapi + uvicorn
+bash infra/run_ui.sh                 # -> http://127.0.0.1:8055  (set TAXAGENT_UI_HOST=0.0.0.0 for remote)
 
 # stop the serve
 bash infra/stop_serve.sh

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TaxAgent Canada</title>
+<style>
+  :root {
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#1f2430; --muted:#6b7280; --line:#e5e7eb;
+    --brand:#2563eb; --brand-ink:#1d4ed8; --user:#eef2ff;
+    --low:#b45309; --low-bg:#fef3c7; --med:#1d4ed8; --med-bg:#dbeafe; --high:#047857; --high-bg:#d1fae5;
+    --miss:#b91c1c; --miss-bg:#fee2e2; --doc:#1d4ed8; --doc-bg:#dbeafe; --off:#047857; --off-bg:#d1fae5; --usr:#4b5563; --usr-bg:#f3f4f6;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         color:var(--ink); background:var(--bg); }
+  header { background:var(--panel); border-bottom:1px solid var(--line); padding:12px 20px; display:flex; align-items:center; gap:14px; }
+  header h1 { font-size:17px; margin:0; font-weight:650; }
+  header .disc { color:var(--muted); font-size:12px; }
+  header .who { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  header input { border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:13px; width:130px; }
+  header button { border:1px solid var(--line); background:#fff; border-radius:8px; padding:5px 10px; font-size:13px; cursor:pointer; }
+  header button:hover { background:#f3f4f6; }
+  .wrap { display:grid; grid-template-columns: 1fr 320px; gap:16px; max-width:1180px; margin:16px auto; padding:0 16px; }
+  @media (max-width:860px){ .wrap{ grid-template-columns:1fr; } .side{ order:-1; } }
+
+  .chat { background:var(--panel); border:1px solid var(--line); border-radius:14px; display:flex; flex-direction:column; height:calc(100vh - 120px); }
+  .log { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
+  .empty { color:var(--muted); text-align:center; margin:auto; max-width:420px; }
+  .empty ul { text-align:left; padding-left:18px; }
+
+  .msg.user { align-self:flex-end; max-width:80%; background:var(--user); border:1px solid #e0e7ff; padding:10px 14px; border-radius:14px 14px 4px 14px; white-space:pre-wrap; }
+  .card { align-self:flex-start; max-width:88%; background:#fff; border:1px solid var(--line); border-radius:14px 14px 14px 4px; padding:14px 16px; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .card h4 { margin:14px 0 4px; font-size:12px; letter-spacing:.03em; text-transform:uppercase; color:var(--muted); }
+  .card h4:first-child { margin-top:0; }
+  .card .answer { font-weight:560; }
+  .card p { margin:4px 0; white-space:pre-wrap; }
+  .card ul { margin:4px 0; padding-left:18px; }
+  .badge { display:inline-block; font-size:12px; font-weight:600; padding:2px 9px; border-radius:999px; }
+  .b-low{color:var(--low);background:var(--low-bg)} .b-medium{color:var(--med);background:var(--med-bg)} .b-high{color:var(--high);background:var(--high-bg)}
+  .src { color:var(--muted); font-size:12px; margin-top:10px; border-top:1px dashed var(--line); padding-top:8px; }
+  .prof-warn { margin-top:8px; background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; padding:8px 10px; border-radius:8px; font-size:13px; }
+
+  .composer { border-top:1px solid var(--line); padding:12px; display:flex; gap:10px; }
+  .composer textarea { flex:1; resize:none; border:1px solid var(--line); border-radius:10px; padding:10px 12px; font:inherit; height:46px; max-height:140px; }
+  .composer button { background:var(--brand); color:#fff; border:0; border-radius:10px; padding:0 18px; font-weight:600; cursor:pointer; }
+  .composer button:disabled { opacity:.5; cursor:default; }
+  .typing { align-self:flex-start; color:var(--muted); font-size:14px; }
+  .typing span { animation:blink 1.2s infinite; } .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+  @keyframes blink { 0%,60%,100%{opacity:.2} 30%{opacity:1} }
+
+  .side { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; height:fit-content; position:sticky; top:16px; }
+  .side h3 { margin:0 0 4px; font-size:14px; }
+  .side .hint { color:var(--muted); font-size:12px; margin-bottom:12px; }
+  .fact { border:1px solid var(--line); border-radius:10px; padding:8px 10px; margin-bottom:8px; }
+  .fact .k { font-weight:600; font-size:13px; }
+  .fact .v { color:var(--ink); font-size:13px; }
+  .es { font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; margin-top:5px; display:inline-block; }
+  .es-missing{color:var(--miss);background:var(--miss-bg)} .es-user_reported{color:var(--usr);background:var(--usr-bg)}
+  .es-document_supported{color:var(--doc);background:var(--doc-bg)} .es-official_record{color:var(--off);background:var(--off-bg)}
+  .side .none { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍁 TaxAgent&nbsp;Canada</h1>
+  <span class="disc">Educational information, not certified tax advice.</span>
+  <div class="who">
+    <label>profile:</label>
+    <input id="uid" title="Your profile id — your facts are saved and reloaded under this id" />
+    <button id="reset" title="Start a new conversation (your saved profile is kept)">New chat</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="chat">
+    <div class="log" id="log">
+      <div class="empty" id="empty">
+        <p><strong>Ask a personal tax question.</strong> I keep your facts across turns and flag what to verify.</p>
+        <ul>
+          <li>“I interned Jan–June 2025 in Québec. Should I answer Yes to the group drug insurance question?”</li>
+          <li>“I have $100k unused tuition. Why didn’t my refund jump?”</li>
+          <li>“I became a PR in July and got my RAMQ card in October — how does that affect Schedule K?”</li>
+        </ul>
+      </div>
+    </div>
+    <div class="composer">
+      <textarea id="input" placeholder="Type your tax question…  (Enter to send, Shift+Enter for newline)"></textarea>
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <aside class="side">
+    <h3>Your tax profile</h3>
+    <div class="hint">Key facts I’ve gathered — saved under your profile id.</div>
+    <div id="facts"><div class="none">Nothing yet.</div></div>
+  </aside>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const log = $("#log"), input = $("#input"), sendBtn = $("#send"), factsEl = $("#facts"), uidEl = $("#uid");
+
+let uid = localStorage.getItem("taxagent_uid");
+if (!uid) { uid = "user-" + Math.random().toString(36).slice(2, 8); localStorage.setItem("taxagent_uid", uid); }
+uidEl.value = uid;
+uidEl.addEventListener("change", () => {
+  uid = uidEl.value.trim() || uid; localStorage.setItem("taxagent_uid", uid);
+  clearChat(); loadProfile();
+});
+
+const esc = t => { const d = document.createElement("div"); d.textContent = t == null ? "" : String(t); return d.innerHTML; };
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
+function list(items){ if(!items||!items.length) return null; const ul=el("ul"); items.forEach(x=>ul.appendChild(el("li",null,esc(x)))); return ul; }
+
+function addUser(text){ $("#empty")?.remove(); const m=el("div","msg user",esc(text)); log.appendChild(m); scroll(); }
+function addTyping(){ const t=el("div","typing",'TaxAgent is thinking <span>·</span><span>·</span><span>·</span>'); t.id="typing"; log.appendChild(t); scroll(); return t; }
+
+function addRec(r){
+  const c = el("div","card");
+  c.appendChild(el("h4",null,"Direct answer"));
+  c.appendChild(el("p","answer",esc(r.answer)));
+  c.appendChild(el("h4",null,"Reasoning"));
+  c.appendChild(el("p",null,esc(r.rationale)));
+  const ev = (r.required_evidence||[]).map(e => `${e.description}`);
+  if (ev.length){ c.appendChild(el("h4",null,"Evidence to check")); c.appendChild(list(ev)); }
+  c.appendChild(el("h4",null,"Confidence"));
+  c.appendChild(el("span","badge b-"+r.confidence, esc(r.confidence)));
+  if ((r.risks||[]).length){ c.appendChild(el("h4",null,"Risks")); c.appendChild(list(r.risks)); }
+  if (r.next_step){ c.appendChild(el("h4",null,"Suggested next step")); c.appendChild(el("p",null,esc(r.next_step))); }
+  if (r.professional_help_recommended)
+    c.appendChild(el("div","prof-warn","⚠️ Consider consulting a qualified tax professional for this one."));
+  if ((r.source_card_ids||[]).length)
+    c.appendChild(el("div","src","Sources: "+esc(r.source_card_ids.join(", "))));
+  log.appendChild(c); scroll();
+}
+
+function renderFacts(facts){
+  factsEl.innerHTML = "";
+  if(!facts || !facts.length){ factsEl.appendChild(el("div","none","Nothing yet.")); return; }
+  facts.forEach(f=>{
+    const d = el("div","fact");
+    d.appendChild(el("div","k",esc(f.key)));
+    d.appendChild(el("div","v",esc(f.value)));
+    d.appendChild(el("span","es es-"+f.evidence_status, esc(f.evidence_status.replace("_"," "))));
+    factsEl.appendChild(d);
+  });
+}
+
+function scroll(){ log.scrollTop = log.scrollHeight; }
+function clearChat(){ log.innerHTML=""; }
+
+async function loadProfile(){
+  try { const r = await fetch("/api/profile/"+encodeURIComponent(uid)); const d = await r.json(); renderFacts(d.profile_facts); }
+  catch(e){}
+}
+
+async function send(){
+  const text = input.value.trim(); if(!text) return;
+  input.value=""; input.style.height="46px";
+  addUser(text); sendBtn.disabled=true; input.disabled=true;
+  const typing = addTyping();
+  try {
+    const res = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ user_id: uid, message: text })
+    });
+    typing.remove();
+    if(!res.ok){ addRec({answer:"(server error "+res.status+")", rationale:"", confidence:"low"}); return; }
+    const d = await res.json();
+    addRec(d.recommendation);
+    renderFacts(d.profile_facts);
+  } catch(e){
+    typing.remove();
+    addRec({answer:"(network error — is the server running?)", rationale:String(e), confidence:"low"});
+  } finally {
+    sendBtn.disabled=false; input.disabled=false; input.focus();
+  }
+}
+
+sendBtn.addEventListener("click", send);
+input.addEventListener("keydown", e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } });
+input.addEventListener("input", () => { input.style.height="46px"; input.style.height=Math.min(input.scrollHeight,140)+"px"; });
+$("#reset").addEventListener("click", async () => { await fetch("/api/reset/"+encodeURIComponent(uid),{method:"POST"}); clearChat(); loadProfile(); input.focus(); });
+
+loadProfile(); input.focus();
+</script>
+</body>
+</html>
