@@ -52,9 +52,13 @@ bash infra/serve_35b_mvp.sh          # TP=4 on GPUs 1-4, ~47% each, OpenAI API o
 # tests
 .venv/bin/python -m pytest -q         # unit (no LLM) + live serve smoke (skips if :8011 down)
 
-# chat UI (web) — needs the model serve above; talks to it via TAXAGENT_BASE_URL
+# chat UI (web) - public static demo works even without the model serve
 .venv/bin/pip install -e '.[web]'   # first time: installs fastapi + uvicorn
-bash infra/run_ui.sh                 # -> http://127.0.0.1:8055  (set TAXAGENT_UI_HOST=0.0.0.0 for remote)
+bash infra/run_ui.sh                 # -> http://127.0.0.1:8055
+
+# optional private live demo: keep behind a PIN and tunnel only the UI port
+TAXAGENT_DEMO_LIVE_ENABLED=1 TAXAGENT_DEMO_PIN='<temporary-pin>' bash infra/run_ui.sh
+cloudflared tunnel --url http://127.0.0.1:8055   # never tunnel :8011
 
 # stop the serve
 bash infra/stop_serve.sh
@@ -62,6 +66,9 @@ bash infra/stop_serve.sh
 
 Point at any OpenAI-compatible endpoint via env: `TAXAGENT_BASE_URL`, `TAXAGENT_MODEL`,
 `TAXAGENT_OUTPUT_MODE` (`native`|`prompted`|`tool`), `TAXAGENT_TEMPERATURE`.
+For public demos, see `docs/festival_demo_runbook.md`: keep vLLM on localhost,
+avoid `TAXAGENT_UI_HOST=0.0.0.0`, and expose only `127.0.0.1:8055` through a
+protected tunnel.
 
 ## Deliberately stubbed (next steps, per the harness design)
 

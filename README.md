@@ -4,6 +4,18 @@ A Canada-first personal tax assistant for individuals who need help understandin
 
 TaxAgent Canada is not meant to replace certified tax professionals. The goal is to build a careful, source-grounded assistant that helps users understand what a tax question is asking, collect the right evidence, reason through eligibility, and make safer decisions when using products such as TurboTax, Wealthsimple Tax, UFile, or CRA/Revenu Québec portals.
 
+## Festival Demo
+
+The web demo is safe-by-default for public sharing:
+
+* The public URL opens a static scenario demo that does not call the model.
+* Private live reasoning is disabled unless `TAXAGENT_DEMO_LIVE_ENABLED=1`.
+* Live reasoning requires `X-Demo-Pin` / the UI PIN field and uses only an in-memory session.
+* The web demo does not persist `.profiles` data.
+* Keep vLLM on `127.0.0.1:8011`; expose only `127.0.0.1:8055` through a tunnel.
+
+See [docs/festival_demo_runbook.md](docs/festival_demo_runbook.md) for the exact run, tunnel, and safety-check commands.
+
 ## Motivation
 
 Personal tax filing is often not difficult because of arithmetic. It is difficult because users do not know how to map their real-life situation to the wording used by tax software and government forms.

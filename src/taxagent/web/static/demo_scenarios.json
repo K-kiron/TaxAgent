@@ -1,0 +1,208 @@
+[
+  {
+    "id": "quebec_group_drug_insurance",
+    "title": "Quebec group drug insurance",
+    "tagline": "A cautious answer to the common Schedule K insurance question.",
+    "prompt": "I interned in Quebec from January to June 2025. Tax software asks whether I had basic prescription drug insurance through a group plan. Should I answer Yes?",
+    "recommendation": {
+      "answer": "Do not answer Yes just because you had an internship. Answer Yes only if your employer, school, spouse, parent, or another group plan actually covered basic prescription drugs for the relevant months.",
+      "rationale": "Quebec's prescription drug insurance question is about real coverage, not just employment status. The safe path is to map each month to RAMQ, private/group coverage, or an exemption before choosing the software answer.",
+      "facts_used": [
+        {
+          "key": "province",
+          "value": "Quebec",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "employment_period",
+          "value": "January to June 2025 internship",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "actual_drug_coverage",
+          "value": null,
+          "evidence_status": "missing",
+          "confidence": "low"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "benefits_booklet",
+          "description": "Employer or school benefits booklet showing whether prescription drugs were covered.",
+          "status": "requested"
+        },
+        {
+          "type": "pay_stub",
+          "description": "Pay stub deductions or insurer portal record for the internship months.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "The internship alone does not prove drug coverage."
+      ],
+      "confidence": "medium",
+      "risks": [
+        "Answering Yes without coverage evidence can understate the Quebec prescription drug insurance premium.",
+        "Answering No when group coverage existed can also produce an incorrect filing position."
+      ],
+      "next_step": "Check the employer benefits record and build a month-by-month coverage table before filing.",
+      "source_card_ids": ["qc_ramq_drug_premium_v1"],
+      "professional_help_recommended": false
+    }
+  },
+  {
+    "id": "tuition_carryforward",
+    "title": "Tuition carryforward",
+    "tagline": "Why a large unused tuition amount does not become a cash refund.",
+    "prompt": "I have about 100,000 dollars of unused tuition credits. Why did my refund not increase by 100,000 dollars?",
+    "recommendation": {
+      "answer": "Unused tuition is not a cash refund balance. It is generally a non-refundable credit that can reduce tax payable when you have enough taxable income.",
+      "rationale": "A non-refundable credit lowers tax payable, but it usually cannot create a refund beyond tax already withheld or refundable credits. In a low-income year, much of the carryforward may remain unused.",
+      "facts_used": [
+        {
+          "key": "unused_tuition",
+          "value": "about 100000",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "tax_payable",
+          "value": null,
+          "evidence_status": "missing",
+          "confidence": "low"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "government_notice",
+          "description": "CRA notice of assessment showing the unused tuition carryforward.",
+          "status": "requested"
+        },
+        {
+          "type": "tax_slip",
+          "description": "T4/RL slips and generated return summary showing income, tax payable, and tax withheld.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "The amount refers to unused tuition/education amounts, not tax withheld."
+      ],
+      "confidence": "medium",
+      "risks": [
+        "Confusing credit amount with refund amount can lead to unrealistic refund expectations.",
+        "Software may use only the portion needed to reduce tax payable for the year."
+      ],
+      "next_step": "Compare tax payable before credits, tax withheld, and remaining carryforward on the generated forms.",
+      "source_card_ids": ["ca_tuition_carryforward_v1"],
+      "professional_help_recommended": false
+    }
+  },
+  {
+    "id": "new_pr_ramq_timeline",
+    "title": "New PR and RAMQ timeline",
+    "tagline": "Separate card arrival, eligibility, and month-by-month coverage.",
+    "prompt": "I became a permanent resident in July and received my RAMQ card in October. How should I think about the Quebec prescription drug insurance premium?",
+    "recommendation": {
+      "answer": "Do not treat the physical card date as the whole answer. Build a month-by-month timeline using the RAMQ eligibility or registration date, any private coverage, and any exemption periods.",
+      "rationale": "The tax software is trying to determine which months were covered by a qualifying plan or subject to the public plan premium. Immigration status, RAMQ registration, and card mailing date can be different facts.",
+      "facts_used": [
+        {
+          "key": "pr_date",
+          "value": "July",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "ramq_card_received",
+          "value": "October",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "ramq_effective_date",
+          "value": null,
+          "evidence_status": "missing",
+          "confidence": "low"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "government_notice",
+          "description": "RAMQ letter or online account showing the effective coverage or registration date.",
+          "status": "requested"
+        },
+        {
+          "type": "insurance_card",
+          "description": "Any private or group insurance card for months before RAMQ coverage.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "The user was a Quebec resident for at least part of the year."
+      ],
+      "confidence": "low",
+      "risks": [
+        "Using the card arrival date instead of the effective date may misclassify months.",
+        "Revenu Quebec may cross-check official coverage records."
+      ],
+      "next_step": "Create a 12-row month table and mark RAMQ, group/private insurance, or no coverage for each month.",
+      "source_card_ids": ["qc_ramq_pr_timing_v1"],
+      "professional_help_recommended": false
+    }
+  },
+  {
+    "id": "tax_software_discrepancy",
+    "title": "Tax software discrepancy",
+    "tagline": "When TurboTax and Wealthsimple ask different questions.",
+    "prompt": "TurboTax asks about a credit but Wealthsimple Tax does not show the same question. Which software is right?",
+    "recommendation": {
+      "answer": "Do not assume either product is right from the interview question alone. Identify the underlying form or line, then compare the generated forms and the eligibility facts.",
+      "rationale": "Tax software products can use different interview flows. One may ask explicitly while another infers the answer, hides it until conditions are met, or leaves it in a forms view.",
+      "facts_used": [
+        {
+          "key": "software_a",
+          "value": "TurboTax",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "software_b",
+          "value": "Wealthsimple Tax",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "underlying_form_line",
+          "value": null,
+          "evidence_status": "missing",
+          "confidence": "low"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "software_screenshot",
+          "description": "Screenshots or exported summaries showing the exact question and any generated form line.",
+          "status": "requested"
+        },
+        {
+          "type": "other",
+          "description": "The official form or guide for the credit or premium in question.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "Both products are being compared for the same tax year and province."
+      ],
+      "confidence": "medium",
+      "risks": [
+        "A missing interview question may still produce a correct form entry.",
+        "A visible interview question may be conditional and not prove eligibility."
+      ],
+      "next_step": "Find the generated form line in both products, then compare the facts each product used.",
+      "source_card_ids": ["software_interview_discrepancy_v1"],
+      "professional_help_recommended": false
+    }
+  }
+]
