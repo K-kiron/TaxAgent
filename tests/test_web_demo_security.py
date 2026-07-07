@@ -28,7 +28,47 @@ def test_demo_config_exposes_static_mode_without_secret(monkeypatch):
     assert body["live_enabled"] is False
     assert body["max_chars"] == 120
     assert len(body["scenarios"]) >= 4
+    assert {w["id"] for w in body["workflows"]} == {
+        "tax_question",
+        "manual_intake",
+        "document_review",
+    }
     assert "demo-pin" not in res.text
+
+
+def test_static_chat_rejects_low_information_input(monkeypatch):
+    client = _client(monkeypatch, live=False)
+
+    res = client.post("/api/static-chat", json={"message": "1"})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["matched"] is False
+    assert body["mode"] == "fallback"
+    assert body["scenario_id"] is None
+    assert body["recommendation"]["confidence"] == "low"
+    assert "not enough demo context" in body["recommendation"]["answer"]
+
+
+def test_static_chat_matches_tax_intent_without_exact_prompt(monkeypatch):
+    client = _client(monkeypatch, live=False)
+
+    cases = [
+        ("my employer benefits might include prescription medication in Quebec", "quebec_group_drug_insurance"),
+        ("does unused university tuition become a big refund later", "tuition_carryforward"),
+        ("new permanent resident got RAMQ card months after landing", "new_pr_ramq_timeline"),
+        ("TurboTax and Wealthsimple show different tax questions", "tax_software_discrepancy"),
+        ("I want to fill province residency tuition employment insurance facts manually", "manual_tax_intake_summary"),
+        ("review a sample T4 RL-1 T2202 tax slip before filing", "sample_tax_slip_review"),
+    ]
+
+    for message, expected_id in cases:
+        res = client.post("/api/static-chat", json={"message": message})
+        assert res.status_code == 200
+        body = res.json()
+        assert body["matched"] is True
+        assert body["scenario_id"] == expected_id
+        assert body["recommendation"]["answer"]
 
 
 def test_live_chat_disabled_by_default_and_does_not_require_user_id(monkeypatch):
@@ -142,10 +182,14 @@ def test_static_demo_scenarios_are_complete():
         "tuition_carryforward",
         "new_pr_ramq_timeline",
         "tax_software_discrepancy",
+        "manual_tax_intake_summary",
+        "sample_tax_slip_review",
     } <= ids
     for scenario in scenarios:
         assert scenario["title"]
         assert scenario["prompt"]
+        assert scenario["workflow"] in {"tax_question", "manual_intake", "document_review"}
+        assert len(scenario["keywords"]) >= 6
         rec = scenario["recommendation"]
         assert rec["answer"]
         assert rec["required_evidence"]

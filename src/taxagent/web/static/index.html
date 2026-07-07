@@ -29,7 +29,7 @@
     background:var(--bg);
     font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
-  button, input, textarea { font:inherit; }
+  button, input, textarea, select { font:inherit; }
   button { cursor:pointer; }
   header {
     min-height:64px;
@@ -69,7 +69,7 @@
     padding:7px 9px;
     background:#fff;
   }
-  .pinbox button {
+  .pinbox button, .small-action {
     border:0;
     border-radius:8px;
     padding:8px 11px;
@@ -77,11 +77,11 @@
     background:var(--ink);
   }
   main {
-    width:min(1180px, 100%);
+    width:min(1240px, 100%);
     margin:0 auto;
     padding:18px;
     display:grid;
-    grid-template-columns: 300px minmax(0, 1fr) 320px;
+    grid-template-columns: 320px minmax(0, 1fr) 320px;
     gap:16px;
   }
   .panel {
@@ -91,14 +91,56 @@
     box-shadow:var(--shadow);
     min-width:0;
   }
-  .scenarios { padding:14px; height:fit-content; }
-  .scenarios h2, .inspector h2 {
+  .left { padding:14px; height:fit-content; }
+  .left h2, .inspector h2 {
     margin:0 0 10px;
     font-size:14px;
   }
-  .scenario-list {
+  .workflow-list, .scenario-list, .sample-actions {
     display:grid;
     gap:8px;
+  }
+  .workflow {
+    width:100%;
+    text-align:left;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    padding:10px;
+  }
+  .workflow:hover, .workflow.active {
+    border-color:#8db4f4;
+    background:#f8fbff;
+  }
+  .workflow strong, .scenario strong { display:block; font-size:13px; }
+  .workflow span, .scenario span { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
+  .toolbox {
+    margin-top:12px;
+    border-top:1px solid var(--line);
+    padding-top:12px;
+  }
+  .toolbox.hidden { display:none; }
+  .field {
+    display:grid;
+    gap:4px;
+    margin-bottom:9px;
+  }
+  .field label {
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+  }
+  .field input, .field select {
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 9px;
+    background:#fff;
+  }
+  .scenario-list {
+    margin-top:12px;
+    border-top:1px solid var(--line);
+    padding-top:12px;
   }
   .scenario {
     width:100%;
@@ -112,8 +154,6 @@
     border-color:#8db4f4;
     background:#f8fbff;
   }
-  .scenario strong { display:block; font-size:13px; }
-  .scenario span { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
   .privacy {
     margin-top:12px;
     padding:10px;
@@ -121,6 +161,11 @@
     background:var(--soft-amber);
     border:1px solid #efd2a3;
     color:#6f4314;
+    font-size:12px;
+  }
+  .file-note {
+    margin:8px 0 0;
+    color:var(--muted);
     font-size:12px;
   }
   .chat {
@@ -138,7 +183,7 @@
   }
   .welcome {
     align-self:center;
-    max-width:520px;
+    max-width:560px;
     margin:auto;
     text-align:center;
     color:var(--muted);
@@ -150,7 +195,7 @@
     margin-bottom:6px;
   }
   .msg {
-    max-width:86%;
+    max-width:88%;
     border-radius:8px;
     padding:11px 13px;
     border:1px solid var(--line);
@@ -167,6 +212,7 @@
   .rec-title {
     display:flex;
     align-items:center;
+    flex-wrap:wrap;
     gap:8px;
     margin-bottom:8px;
   }
@@ -187,7 +233,7 @@
     margin:12px 0 4px;
     color:var(--muted);
     font-size:11px;
-    letter-spacing:.02em;
+    letter-spacing:0;
     text-transform:uppercase;
   }
   .msg p { margin:0; white-space:pre-wrap; }
@@ -217,7 +263,7 @@
     color:#fff;
     font-weight:700;
   }
-  .send:disabled { opacity:.5; cursor:default; }
+  .send:disabled, .small-action:disabled { opacity:.5; cursor:default; }
   .inspector { padding:14px; height:fit-content; position:sticky; top:16px; }
   .inspector-section {
     border-top:1px solid var(--line);
@@ -229,7 +275,7 @@
     margin:0 0 8px;
     color:var(--muted);
     font-size:11px;
-    letter-spacing:.02em;
+    letter-spacing:0;
     text-transform:uppercase;
   }
   .inspector ul { margin:0; padding-left:18px; }
@@ -240,8 +286,8 @@
     background:var(--soft-red);
     border-color:#f5bbbb;
   }
-  @media (max-width:1040px) {
-    main { grid-template-columns:270px minmax(0, 1fr); }
+  @media (max-width:1080px) {
+    main { grid-template-columns:300px minmax(0, 1fr); }
     .inspector { grid-column:1 / -1; position:static; }
   }
   @media (max-width:760px) {
@@ -272,8 +318,67 @@
 </header>
 
 <main>
-  <section class="panel scenarios">
-    <h2>Demo scenarios</h2>
+  <section class="panel left">
+    <h2>Workflows</h2>
+    <div id="workflowList" class="workflow-list"></div>
+
+    <div id="manualTool" class="toolbox hidden">
+      <div class="field">
+        <label for="taxYear">Tax year</label>
+        <input id="taxYear" value="2025" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="province">Province</label>
+        <select id="province">
+          <option>Quebec</option>
+          <option>Ontario</option>
+          <option>British Columbia</option>
+          <option>Alberta</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="residency">Residency timeline</label>
+        <input id="residency" value="Quebec resident for part or all of the year" />
+      </div>
+      <div class="field">
+        <label for="income">Income/slips</label>
+        <select id="income">
+          <option>Internship or employment income</option>
+          <option>Student with low income</option>
+          <option>Mixed employment and tuition facts</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="tuition">Tuition</label>
+        <select id="tuition">
+          <option>Unused tuition carryforward</option>
+          <option>Current year tuition slip</option>
+          <option>No tuition facts</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="insurance">Insurance coverage</label>
+        <select id="insurance">
+          <option>Uncertain Quebec drug insurance months</option>
+          <option>Employer group plan for some months</option>
+          <option>RAMQ timing changed during the year</option>
+        </select>
+      </div>
+      <button id="analyzeIntake" class="small-action" type="button">Analyze intake</button>
+    </div>
+
+    <div id="slipTool" class="toolbox hidden">
+      <div class="field">
+        <label for="slipFile">Local slip file</label>
+        <input id="slipFile" type="file" />
+      </div>
+      <div id="fileNote" class="file-note">File content is not uploaded in the public demo.</div>
+      <div class="sample-actions">
+        <button id="sampleT4" class="small-action" type="button">Use sample T4/RL-1</button>
+        <button id="sampleTuition" class="small-action" type="button">Use sample T2202</button>
+      </div>
+    </div>
+
     <div id="scenarioList" class="scenario-list"></div>
     <div class="privacy">
       Use sample facts only. Do not enter SIN, addresses, account numbers, tax slip text, or exact real income.
@@ -283,24 +388,25 @@
   <section class="panel chat">
     <div id="log" class="log">
       <div class="welcome">
-        <strong>Pick a scenario or ask a demo question.</strong>
-        The public experience uses prebuilt examples. PIN unlocks a private live agent when the backend is enabled.
+        <strong>Try TaxAgent as a product flow.</strong>
+        Ask a tax question, fill a sample situation, or review sample slips. Public mode is static and safe; PIN unlocks private live reasoning only when enabled.
       </div>
     </div>
     <div class="composer">
-      <textarea id="input" placeholder="Ask with non-sensitive sample facts"></textarea>
+      <textarea id="input" placeholder="Ask with non-sensitive sample facts, e.g. 'new PR got RAMQ card in October'"></textarea>
       <button id="send" class="send" type="button">Ask</button>
     </div>
   </section>
 
   <aside class="panel inspector">
     <h2>Evidence and risk</h2>
-    <div id="inspector" class="empty-side">Select a scenario to see the filing rationale.</div>
+    <div id="inspector" class="empty-side">Run a workflow to see facts, evidence, risks, and next steps.</div>
   </aside>
 </main>
 
 <script>
 const $ = selector => document.querySelector(selector);
+const workflowList = $("#workflowList");
 const scenarioList = $("#scenarioList");
 const log = $("#log");
 const inspector = $("#inspector");
@@ -310,10 +416,23 @@ const mode = $("#mode");
 const pinbox = $("#pinbox");
 const pinInput = $("#pin");
 const unlock = $("#unlock");
+const manualTool = $("#manualTool");
+const slipTool = $("#slipTool");
+const fileNote = $("#fileNote");
 
 let scenarios = [];
 let selected = null;
-let config = { live_enabled: false, max_chars: 800, scenarios: [] };
+let activeWorkflow = "tax_question";
+let config = {
+  live_enabled: false,
+  max_chars: 800,
+  workflows: [
+    { id: "tax_question", title: "Ask a tax question", description: "Answer a tax question from sample facts." },
+    { id: "manual_intake", title: "Fill tax situation", description: "Enter sample facts and get a checklist." },
+    { id: "document_review", title: "Review tax slips", description: "Preview slip extraction with sample data." }
+  ],
+  scenarios: []
+};
 let livePin = sessionStorage.getItem("taxagent_demo_pin") || "";
 
 function text(tag, cls, value) {
@@ -330,17 +449,17 @@ function removeWelcome() {
 
 function addUser(message) {
   removeWelcome();
-  const node = text("div", "msg user", message);
-  log.appendChild(node);
+  log.appendChild(text("div", "msg user", message));
   scrollLog();
 }
 
-function addAgent(rec, source) {
+function addAgent(rec, source, meta) {
   removeWelcome();
   const card = text("div", "msg agent", "");
   const title = text("div", "rec-title", "");
   title.appendChild(text("strong", "", source || "TaxAgent"));
   title.appendChild(text("span", `badge ${rec.confidence || "low"}`, rec.confidence || "low"));
+  if (meta) title.appendChild(text("span", "pill", meta));
   card.appendChild(title);
 
   addSection(card, "Direct answer", rec.answer);
@@ -417,45 +536,68 @@ function setModeLabel() {
   pinbox.classList.toggle("visible", Boolean(config.live_enabled));
 }
 
+function renderWorkflows() {
+  workflowList.innerHTML = "";
+  config.workflows.forEach(workflow => {
+    const button = text("button", "workflow", "");
+    button.type = "button";
+    button.dataset.id = workflow.id;
+    button.appendChild(text("strong", "", workflow.title));
+    button.appendChild(text("span", "", workflow.description));
+    button.addEventListener("click", () => setWorkflow(workflow.id));
+    workflowList.appendChild(button);
+  });
+  markWorkflow();
+}
+
+function setWorkflow(id) {
+  activeWorkflow = id;
+  selected = null;
+  markWorkflow();
+  renderTools();
+  renderScenarios();
+}
+
+function markWorkflow() {
+  workflowList.querySelectorAll(".workflow").forEach(button => {
+    button.classList.toggle("active", button.dataset.id === activeWorkflow);
+  });
+}
+
+function renderTools() {
+  manualTool.classList.toggle("hidden", activeWorkflow !== "manual_intake");
+  slipTool.classList.toggle("hidden", activeWorkflow !== "document_review");
+}
+
 function renderScenarios() {
   scenarioList.innerHTML = "";
-  scenarios.forEach(scenario => {
+  const visible = scenarios.filter(s => (s.workflow || "tax_question") === activeWorkflow);
+  visible.forEach(scenario => {
     const button = text("button", "scenario", "");
     button.type = "button";
     button.dataset.id = scenario.id;
     button.appendChild(text("strong", "", scenario.title));
     button.appendChild(text("span", "", scenario.tagline || scenario.prompt));
-    button.addEventListener("click", () => selectScenario(scenario.id, true));
+    button.addEventListener("click", () => selectScenario(scenario.id));
     scenarioList.appendChild(button);
   });
-  markActive();
+  if (!visible.length) scenarioList.appendChild(text("div", "empty-side", "No static scenarios for this workflow yet."));
+  markActiveScenario();
 }
 
-function markActive() {
+function markActiveScenario() {
   scenarioList.querySelectorAll(".scenario").forEach(button => {
     button.classList.toggle("active", selected && button.dataset.id === selected.id);
   });
 }
 
-function selectScenario(id, sendPrompt) {
-  selected = scenarios.find(s => s.id === id) || scenarios[0] || null;
-  markActive();
+function selectScenario(id) {
+  selected = scenarios.find(s => s.id === id) || null;
+  markActiveScenario();
   if (!selected) return;
   input.value = selected.prompt;
-  renderInspector(selected.recommendation);
-  if (sendPrompt) {
-    addUser(selected.prompt);
-    addAgent(selected.recommendation, "Static scenario");
-  }
-}
-
-function chooseScenario(message) {
-  if (selected) return selected;
-  const normalized = message.toLowerCase();
-  return scenarios.find(s => {
-    const haystack = `${s.title} ${s.prompt}`.toLowerCase();
-    return normalized.split(/\s+/).some(word => word.length > 4 && haystack.includes(word));
-  }) || scenarios[0];
+  addUser(selected.prompt);
+  addAgent(selected.recommendation, "Static scenario", selected.title);
 }
 
 async function ask() {
@@ -466,19 +608,48 @@ async function ask() {
     return;
   }
   input.value = "";
+  input.style.height = "48px";
+  await askMessage(message);
+}
+
+async function askMessage(message) {
   addUser(message);
   send.disabled = true;
   try {
     if (livePin && config.live_enabled) {
       await askLive(message);
     } else {
-      const scenario = chooseScenario(message);
-      addAgent(scenario.recommendation, "Static scenario");
+      await askStatic(message);
     }
   } finally {
     send.disabled = false;
     input.focus();
   }
+}
+
+async function askStatic(message) {
+  const res = await fetch("/api/static-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message })
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const detail = body.detail || {};
+    addError(detail.message || `Static demo returned ${res.status}.`);
+    return;
+  }
+  const source = body.matched ? "Static match" : "Static fallback";
+  const meta = body.scenario_title || body.mode;
+  if (body.matched && body.mode) setWorkflow(body.mode);
+  if (body.scenario_id) {
+    selected = scenarios.find(s => s.id === body.scenario_id) || null;
+    markActiveScenario();
+  } else {
+    selected = null;
+    markActiveScenario();
+  }
+  addAgent(body.recommendation, source, meta);
 }
 
 async function askLive(message) {
@@ -498,10 +669,33 @@ async function askLive(message) {
       sessionStorage.removeItem("taxagent_demo_pin");
       setModeLabel();
     }
-    addError(detail.message || `Live demo returned ${res.status}. Static scenarios are still available.`);
+    addError(detail.message || `Live demo returned ${res.status}. Static workflows are still available.`);
     return;
   }
-  addAgent(body.recommendation, "Live agent");
+  addAgent(body.recommendation, "Live agent", "PIN session");
+}
+
+function analyzeIntake() {
+  const message = [
+    "Manual intake sample:",
+    `tax year ${$("#taxYear").value}`,
+    `province ${$("#province").value}`,
+    `residency ${$("#residency").value}`,
+    `income ${$("#income").value}`,
+    `tuition ${$("#tuition").value}`,
+    `insurance ${$("#insurance").value}`,
+    "analyze filing checklist and forms before submission"
+  ].join("; ");
+  askMessage(message);
+}
+
+function sampleSlip(kind) {
+  const file = $("#slipFile").files[0];
+  const filePart = file ? `local filename ${file.name}; content not uploaded; ` : "";
+  const message = kind === "tuition"
+    ? `${filePart}review a sample T2202 tuition slip and map it to tuition carryforward and filing checks`
+    : `${filePart}review sample T4 RL-1 tax slips, extract employment income boxes, and check before filing`;
+  askMessage(message);
 }
 
 async function boot() {
@@ -509,11 +703,12 @@ async function boot() {
     fetch("/api/demo-config").catch(() => null),
     fetch("/static/demo_scenarios.json")
   ]);
-  if (cfgRes && cfgRes.ok) config = await cfgRes.json();
+  if (cfgRes && cfgRes.ok) config = { ...config, ...(await cfgRes.json()) };
   scenarios = await scenarioRes.json();
+  renderWorkflows();
+  renderTools();
   renderScenarios();
   setModeLabel();
-  if (scenarios[0]) selectScenario(scenarios[0].id, false);
 }
 
 unlock.addEventListener("click", () => {
@@ -525,6 +720,15 @@ unlock.addEventListener("click", () => {
 });
 
 send.addEventListener("click", ask);
+$("#analyzeIntake").addEventListener("click", analyzeIntake);
+$("#sampleT4").addEventListener("click", () => sampleSlip("employment"));
+$("#sampleTuition").addEventListener("click", () => sampleSlip("tuition"));
+$("#slipFile").addEventListener("change", event => {
+  const file = event.target.files[0];
+  fileNote.textContent = file
+    ? `${file.name} selected locally. Public demo will not upload or read its content.`
+    : "File content is not uploaded in the public demo.";
+});
 input.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();

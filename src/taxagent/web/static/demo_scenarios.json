@@ -1,8 +1,22 @@
 [
   {
     "id": "quebec_group_drug_insurance",
+    "workflow": "tax_question",
     "title": "Quebec group drug insurance",
     "tagline": "A cautious answer to the common Schedule K insurance question.",
+    "keywords": [
+      "quebec",
+      "drug",
+      "prescription",
+      "medication",
+      "insurance",
+      "group plan",
+      "employer benefits",
+      "private coverage",
+      "schedule k",
+      "ramq",
+      "internship"
+    ],
     "prompt": "I interned in Quebec from January to June 2025. Tax software asks whether I had basic prescription drug insurance through a group plan. Should I answer Yes?",
     "recommendation": {
       "answer": "Do not answer Yes just because you had an internship. Answer Yes only if your employer, school, spouse, parent, or another group plan actually covered basic prescription drugs for the relevant months.",
@@ -54,8 +68,22 @@
   },
   {
     "id": "tuition_carryforward",
+    "workflow": "tax_question",
     "title": "Tuition carryforward",
     "tagline": "Why a large unused tuition amount does not become a cash refund.",
+    "keywords": [
+      "tuition",
+      "carryforward",
+      "carry forward",
+      "unused tuition",
+      "credit",
+      "non refundable",
+      "refund",
+      "university",
+      "college",
+      "notice of assessment",
+      "tax payable"
+    ],
     "prompt": "I have about 100,000 dollars of unused tuition credits. Why did my refund not increase by 100,000 dollars?",
     "recommendation": {
       "answer": "Unused tuition is not a cash refund balance. It is generally a non-refundable credit that can reduce tax payable when you have enough taxable income.",
@@ -101,8 +129,23 @@
   },
   {
     "id": "new_pr_ramq_timeline",
+    "workflow": "tax_question",
     "title": "New PR and RAMQ timeline",
     "tagline": "Separate card arrival, eligibility, and month-by-month coverage.",
+    "keywords": [
+      "permanent resident",
+      "pr",
+      "newcomer",
+      "ramq",
+      "card",
+      "coverage",
+      "eligibility",
+      "registration",
+      "effective date",
+      "quebec",
+      "month by month",
+      "landing"
+    ],
     "prompt": "I became a permanent resident in July and received my RAMQ card in October. How should I think about the Quebec prescription drug insurance premium?",
     "recommendation": {
       "answer": "Do not treat the physical card date as the whole answer. Build a month-by-month timeline using the RAMQ eligibility or registration date, any private coverage, and any exemption periods.",
@@ -154,8 +197,22 @@
   },
   {
     "id": "tax_software_discrepancy",
+    "workflow": "tax_question",
     "title": "Tax software discrepancy",
     "tagline": "When TurboTax and Wealthsimple ask different questions.",
+    "keywords": [
+      "turbotax",
+      "wealthsimple",
+      "tax software",
+      "software",
+      "different question",
+      "discrepancy",
+      "form line",
+      "interview",
+      "credit",
+      "compare",
+      "generated forms"
+    ],
     "prompt": "TurboTax asks about a credit but Wealthsimple Tax does not show the same question. Which software is right?",
     "recommendation": {
       "answer": "Do not assume either product is right from the interview question alone. Identify the underlying form or line, then compare the generated forms and the eligibility facts.",
@@ -202,6 +259,158 @@
       ],
       "next_step": "Find the generated form line in both products, then compare the facts each product used.",
       "source_card_ids": ["software_interview_discrepancy_v1"],
+      "professional_help_recommended": false
+    }
+  },
+  {
+    "id": "manual_tax_intake_summary",
+    "workflow": "manual_intake",
+    "title": "Manual tax situation intake",
+    "tagline": "Turn entered facts into a filing checklist and form-review plan.",
+    "keywords": [
+      "manual",
+      "intake",
+      "fill",
+      "form",
+      "province",
+      "residency",
+      "employment",
+      "tuition",
+      "insurance",
+      "tax year",
+      "tax situation",
+      "filing checklist",
+      "return"
+    ],
+    "prompt": "I want to manually enter sample facts: Quebec resident for 2025, internship income, unused tuition, and uncertain drug insurance coverage. What would TaxAgent analyze before filing?",
+    "recommendation": {
+      "answer": "TaxAgent would first normalize the entered facts into a filing checklist: province and residency dates, employment slips, tuition carryforward, drug insurance months, missing evidence, and the form lines that need review.",
+      "rationale": "Manual intake is useful when the user does not want to upload documents or when slips are incomplete. The system should separate known facts, missing evidence, assumptions, and software/form decisions before giving filing guidance.",
+      "facts_used": [
+        {
+          "key": "province",
+          "value": "Quebec sample resident",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "employment",
+          "value": "sample internship income",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "tuition",
+          "value": "sample unused tuition carryforward",
+          "evidence_status": "user_reported",
+          "confidence": "medium"
+        },
+        {
+          "key": "drug_insurance_months",
+          "value": null,
+          "evidence_status": "missing",
+          "confidence": "low"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "tax_slip",
+          "description": "T4/RL-1 or employment summary for income and tax withheld.",
+          "status": "requested"
+        },
+        {
+          "type": "government_notice",
+          "description": "CRA/Revenu Quebec notice showing carryforward balances.",
+          "status": "requested"
+        },
+        {
+          "type": "benefits_booklet",
+          "description": "Benefits or RAMQ evidence for each month of Quebec drug insurance coverage.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "The facts are sample facts for a public demo, not real filing data.",
+        "The user wants analysis and form-review help before submission."
+      ],
+      "confidence": "medium",
+      "risks": [
+        "A manual form can omit slip boxes or official carryforward balances.",
+        "Unverified insurance months can produce the wrong Quebec premium treatment."
+      ],
+      "next_step": "Review the generated checklist, attach sample slips if available, then compare the suggested form lines before filing.",
+      "source_card_ids": ["manual_intake_workflow_v1"],
+      "professional_help_recommended": false
+    }
+  },
+  {
+    "id": "sample_tax_slip_review",
+    "workflow": "document_review",
+    "title": "Sample tax slip review",
+    "tagline": "Preview how uploaded slips become extracted facts and filing checks.",
+    "keywords": [
+      "upload",
+      "review",
+      "tax slip",
+      "slip",
+      "t4",
+      "rl-1",
+      "t2202",
+      "extract",
+      "document",
+      "ocr",
+      "box",
+      "form",
+      "employment income",
+      "tuition slip"
+    ],
+    "prompt": "Use sample T4, RL-1, and T2202 slips to show what TaxAgent would extract and what it would check before helping with the return.",
+    "recommendation": {
+      "answer": "For the public demo, TaxAgent can simulate slip review by showing extracted sample facts, cross-checks, missing fields, and the filing questions those slips trigger. Real files should stay private unless live mode is explicitly enabled in a controlled setting.",
+      "rationale": "Slip review should not stop at OCR. The product value is mapping document fields to tax facts, detecting gaps, and explaining which form decisions depend on those facts.",
+      "facts_used": [
+        {
+          "key": "sample_slips",
+          "value": "T4, RL-1, T2202",
+          "evidence_status": "sample_data",
+          "confidence": "medium"
+        },
+        {
+          "key": "upload_mode",
+          "value": "local filename only in public demo",
+          "evidence_status": "system_generated",
+          "confidence": "high"
+        },
+        {
+          "key": "real_document_text",
+          "value": null,
+          "evidence_status": "not_collected",
+          "confidence": "high"
+        }
+      ],
+      "required_evidence": [
+        {
+          "type": "tax_slip",
+          "description": "A controlled private upload or sample slip set for extraction.",
+          "status": "requested"
+        },
+        {
+          "type": "government_notice",
+          "description": "Prior notices for carryforward balances and account-level confirmations.",
+          "status": "requested"
+        }
+      ],
+      "assumptions": [
+        "The public demo does not upload or parse real files.",
+        "The sample slip facts are illustrative and not personal tax data."
+      ],
+      "confidence": "medium",
+      "risks": [
+        "OCR alone can misread boxes, provinces, and tax withheld amounts.",
+        "A slip review must be reconciled against CRA/Revenu Quebec records before submission."
+      ],
+      "next_step": "Use the sample slip buttons to demonstrate extraction, then show how missing evidence becomes a checklist before filing.",
+      "source_card_ids": ["sample_slip_review_v1"],
       "professional_help_recommended": false
     }
   }

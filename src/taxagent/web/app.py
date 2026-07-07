@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -29,6 +30,58 @@ _SESSION_COOKIE = "taxagent_demo_session"
 _SESSION_TTL_SECONDS = 30 * 60
 _RATE_WINDOW_SECONDS = 60
 _RATE_MAX_REQUESTS = 8
+_STATIC_WORKFLOWS = [
+    {
+        "id": "tax_question",
+        "title": "Ask a tax question",
+        "description": "Answer a tax question from non-sensitive sample facts.",
+    },
+    {
+        "id": "manual_intake",
+        "title": "Fill tax situation",
+        "description": "Enter sample facts and see how TaxAgent structures the return work.",
+    },
+    {
+        "id": "document_review",
+        "title": "Review tax slips",
+        "description": "Use sample slips to preview extraction, checks, and next steps.",
+    },
+]
+_STOPWORDS = {
+    "about",
+    "after",
+    "also",
+    "and",
+    "are",
+    "before",
+    "can",
+    "could",
+    "does",
+    "for",
+    "from",
+    "had",
+    "have",
+    "how",
+    "into",
+    "later",
+    "might",
+    "my",
+    "need",
+    "should",
+    "show",
+    "that",
+    "the",
+    "this",
+    "through",
+    "want",
+    "what",
+    "when",
+    "which",
+    "with",
+    "would",
+    "year",
+    "your",
+}
 
 app = FastAPI(
     title="TaxAgent Canada",
@@ -88,6 +141,103 @@ def _max_concurrent() -> int:
 
 def _load_demo_scenarios() -> list[dict]:
     return json.loads(_SCENARIOS.read_text(encoding="utf-8"))
+
+
+def _normalize_tokens(text: str) -> set[str]:
+    tokens = set(re.findall(r"[a-z0-9]+", text.lower()))
+    expanded = set(tokens)
+    if {"permanent", "resident"} <= tokens:
+        expanded.add("pr")
+    if {"prescription", "drug"} & tokens:
+        expanded.add("medication")
+    if "medication" in tokens:
+        expanded.update({"prescription", "drug"})
+    if "university" in tokens or "college" in tokens:
+        expanded.add("tuition")
+    if "refund" in tokens:
+        expanded.add("credit")
+    return {t for t in expanded if len(t) > 2 and t not in _STOPWORDS}
+
+
+def _scenario_terms(scenario: dict) -> set[str]:
+    parts = [
+        scenario.get("id", ""),
+        scenario.get("title", ""),
+        scenario.get("tagline", ""),
+        scenario.get("prompt", ""),
+        scenario.get("workflow", ""),
+        " ".join(scenario.get("keywords", [])),
+    ]
+    return _normalize_tokens(" ".join(parts))
+
+
+def _score_static_scenario(message: str, scenario: dict) -> tuple[int, list[str]]:
+    message_terms = _normalize_tokens(message)
+    scenario_terms = _scenario_terms(scenario)
+    hits = sorted(message_terms & scenario_terms)
+    score = len(hits)
+    normalized_message = " ".join(re.findall(r"[a-z0-9]+", message.lower()))
+    for phrase in scenario.get("keywords", []):
+        phrase_text = " ".join(re.findall(r"[a-z0-9]+", phrase.lower()))
+        if len(phrase_text) >= 4 and phrase_text in normalized_message:
+            score += 3
+            hits.append(phrase)
+    return score, hits
+
+
+def _fallback_recommendation(message: str) -> dict:
+    return {
+        "answer": (
+            "There is not enough demo context to map that input to a tax situation. "
+            "Choose a workflow or describe sample facts such as province, tax year, "
+            "slips, tuition, insurance, residency timing, or software discrepancy."
+        ),
+        "rationale": (
+            "The public demo uses static, prebuilt examples. It should not pretend to "
+            "understand a low-information or unrelated message."
+        ),
+        "facts_used": [
+            {
+                "key": "demo_input",
+                "value": message[:80],
+                "evidence_status": "user_reported",
+                "confidence": "low",
+            }
+        ],
+        "required_evidence": [
+            {
+                "type": "sample_fact",
+                "description": "Provide non-sensitive sample facts or use one of the demo workflows.",
+                "status": "requested",
+            }
+        ],
+        "assumptions": [
+            "The input was too short, too generic, or outside the static demo scenarios."
+        ],
+        "confidence": "low",
+        "risks": [
+            "A static public demo should not infer tax advice from insufficient context.",
+            "Do not enter SIN, addresses, account numbers, full slip text, or exact real income.",
+        ],
+        "next_step": "Pick Ask a tax question, Fill tax situation, or Review tax slips and use sample facts.",
+        "source_card_ids": ["static_demo_fallback_v1"],
+        "professional_help_recommended": False,
+    }
+
+
+def _match_static_scenario(message: str) -> tuple[dict | None, int, list[str]]:
+    message_terms = _normalize_tokens(message)
+    if len(message_terms) < 2:
+        return None, 0, []
+    scored = []
+    for scenario in _load_demo_scenarios():
+        score, hits = _score_static_scenario(message, scenario)
+        scored.append((score, scenario, hits))
+    scored.sort(key=lambda item: item[0], reverse=True)
+    best_score, best_scenario, best_hits = scored[0]
+    if best_score < 2:
+        return None, best_score, best_hits
+    return best_scenario, best_score, best_hits
 
 
 def _prune_expired_sessions(now: float) -> None:
@@ -187,6 +337,12 @@ class ChatRequest(BaseModel):
     tax_year: int | None = None
 
 
+class StaticChatRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    message: str = Field(min_length=1)
+
+
 def _facts_payload(session: TaxSession) -> list[dict]:
     return [
         {
@@ -236,13 +392,61 @@ def chat(
         _leave_live_slot()
 
 
+@app.post("/api/static-chat")
+def static_chat(req: StaticChatRequest) -> dict:
+    if len(req.message) > _max_chars():
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "code": "message_too_long",
+                "message": f"Demo questions are limited to {_max_chars()} characters.",
+            },
+        )
+    scenario, score, hits = _match_static_scenario(req.message)
+    if scenario is None:
+        scenarios = [
+            {"id": s["id"], "title": s["title"], "workflow": s.get("workflow", "tax_question")}
+            for s in _load_demo_scenarios()[:4]
+        ]
+        return {
+            "matched": False,
+            "mode": "fallback",
+            "scenario_id": None,
+            "scenario_title": None,
+            "score": score,
+            "matched_terms": hits,
+            "suggested_scenarios": scenarios,
+            "recommendation": _fallback_recommendation(req.message),
+        }
+    return {
+        "matched": True,
+        "mode": scenario.get("workflow", "tax_question"),
+        "scenario_id": scenario["id"],
+        "scenario_title": scenario["title"],
+        "score": score,
+        "matched_terms": hits,
+        "suggested_scenarios": [],
+        "recommendation": scenario["recommendation"],
+    }
+
+
 @app.get("/api/demo-config")
 def demo_config() -> dict:
     scenarios = [
-        {"id": s["id"], "title": s["title"], "prompt": s["prompt"]}
+        {
+            "id": s["id"],
+            "title": s["title"],
+            "prompt": s["prompt"],
+            "workflow": s.get("workflow", "tax_question"),
+        }
         for s in _load_demo_scenarios()
     ]
-    return {"live_enabled": _live_enabled(), "max_chars": _max_chars(), "scenarios": scenarios}
+    return {
+        "live_enabled": _live_enabled(),
+        "max_chars": _max_chars(),
+        "workflows": _STATIC_WORKFLOWS,
+        "scenarios": scenarios,
+    }
 
 
 @app.get("/api/health")
