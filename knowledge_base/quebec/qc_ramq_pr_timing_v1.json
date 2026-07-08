@@ -1,0 +1,24 @@
+{
+  "id": "qc_ramq_pr_timing_v1",
+  "jurisdiction": "ramq",
+  "source_type": "government",
+  "topic": "ramq_coverage_start_date_vs_card_arrival",
+  "tax_year": 2025,
+  "rule_summary": "For RAMQ eligibility, the date coverage begins is not the date the physical health card arrives in the mail. A new permanent resident generally becomes eligible based on registration/eligibility rules (often tied to PR date and a waiting period), and coverage can be retroactive to the registration/eligibility date once approved. For the Québec prescription drug insurance premium (Schedule K), what matters is which months the person was actually covered (public RAMQ vs private group), not when the card physically arrived. Build a month-by-month timeline distinguishing PR date, application date, eligibility/coverage start date, approval date, and card arrival date.",
+  "source_urls": [
+    "https://www.ramq.gouv.qc.ca/en/citizens/health-insurance/register",
+    "https://www.revenuquebec.ca/en/citizens/income-tax-return/"
+  ],
+  "required_facts": [
+    "pr_date",
+    "ramq_application_date",
+    "ramq_eligibility_or_coverage_start_date",
+    "card_arrival_date",
+    "private_group_coverage_months"
+  ],
+  "uncertainty_notes": [
+    "Eligibility/waiting-period rules for new PRs vary by situation — confirm the coverage start date from the RAMQ registration confirmation, not the card envelope.",
+    "Do not assume Revenu Québec will automatically reconcile mismatched dates."
+  ],
+  "last_verified": "2025-11-01"
+}
