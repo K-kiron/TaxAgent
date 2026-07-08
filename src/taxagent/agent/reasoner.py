@@ -8,9 +8,12 @@ knowledge, render, graders and scenarios are all framework-agnostic.
 
 from __future__ import annotations
 
+import urllib.request
+from urllib.parse import urlparse
+
 from ..config import Settings, settings as default_settings
 from ..knowledge import RuleCardStore, load_default_store
-from ..models import Recommendation, RuleCard, UserFact
+from ..models import EvidenceItem, Recommendation, RuleCard, UserFact
 
 try:  # pydantic-ai renamed the class across versions
     from pydantic_ai.models.openai import OpenAIChatModel as _OpenAIModel
@@ -98,6 +101,180 @@ def _output_type(mode: str):
     return PromptedOutput(Recommendation)
 
 
+def _local_model_endpoint_ready(base_url: str) -> bool:
+    parsed = urlparse(base_url)
+    if parsed.hostname not in {"127.0.0.1", "localhost", "::1"}:
+        return True
+
+    root = base_url.rsplit("/v1", 1)[0].rstrip("/")
+    candidates = [f"{root}/health", f"{base_url.rstrip('/')}/models"]
+    for url in candidates:
+        try:
+            with urllib.request.urlopen(url, timeout=0.4) as response:
+                if response.status < 500:
+                    return True
+        except Exception:
+            continue
+    return False
+
+
+class _LocalFallbackResult:
+    def __init__(self, message_history=None):
+        self._message_history = message_history or []
+
+    def all_messages(self):
+        return self._message_history
+
+
+def _humanize_fact_key(key: str) -> str:
+    return key.replace("_", " ")
+
+
+def _evidence_type_for_fact(key: str) -> str:
+    key = key.lower()
+    if "tuition" in key:
+        return "tax_slip"
+    if "withheld" in key or "tax_payable" in key:
+        return "tax_slip"
+    if "coverage" in key or "insurance" in key:
+        return "insurance_card"
+    if "ramq" in key or "application" in key or "pr_date" in key:
+        return "government_notice"
+    if "software" in key or "form" in key or "line" in key:
+        return "software_screenshot"
+    return "other"
+
+
+def _fallback_evidence(cards: list[RuleCard]) -> list[EvidenceItem]:
+    evidence: list[EvidenceItem] = []
+    seen: set[str] = set()
+    for card in cards:
+        for fact in card.required_facts:
+            if fact in seen:
+                continue
+            seen.add(fact)
+            evidence.append(
+                EvidenceItem(
+                    type=_evidence_type_for_fact(fact),
+                    description=f"Confirm {_humanize_fact_key(fact)} before relying on this answer.",
+                    status="requested",
+                )
+            )
+    if evidence:
+        return evidence[:5]
+    return [
+        EvidenceItem(
+            type="user_statement",
+            description="Restate the question with non-sensitive sample facts; do not provide SIN, addresses, account numbers, or exact real income.",
+            status="requested",
+        )
+    ]
+
+
+def _local_fallback_recommendation(
+    question: str,
+    cards: list[RuleCard],
+    known_facts: list[UserFact] | None = None,
+) -> Recommendation:
+    cited = [card.id for card in cards]
+    card_summaries = " ".join(card.rule_summary for card in cards)
+    lower_question = question.lower()
+    misreport_push = any(
+        phrase in lower_question
+        for phrase in (
+            "just say yes",
+            "just answer yes",
+            "put yes",
+            "select yes",
+            "nobody checks",
+            "won't check",
+            "wont check",
+        )
+    )
+
+    if misreport_push:
+        answer = (
+            "I cannot help choose an answer just to change the tax result. Use the answer "
+            "supported by your actual records, and verify the evidence before filing."
+        )
+    elif cards:
+        top = cards[0]
+        answer = (
+            f"Based on the local rule card for {_humanize_fact_key(top.topic)}, treat this "
+            "as an evidence-checking question rather than a guaranteed filing answer."
+        )
+    else:
+        answer = (
+            "I do not have a matching local rule card for that question yet, so I can only "
+            "give a cautious intake answer and ask for non-sensitive sample facts."
+        )
+
+    if cards:
+        rationale = (
+            "The private live fallback matched your question to local rule cards and did not "
+            f"call an external API. Relevant local guidance: {card_summaries}"
+        )
+    else:
+        rationale = (
+            "No local rule card matched strongly enough. To stay safe, the agent is keeping "
+            "confidence low and asking for evidence instead of inventing tax rules."
+        )
+
+    facts_used = list(known_facts or [])
+    facts_used.append(
+        UserFact(
+            key="current_question",
+            value=question,
+            evidence_status="user_reported",
+            confidence="low",
+            notes="Captured in the private in-memory live session only.",
+        )
+    )
+
+    missing_facts = [
+        UserFact(
+            key=fact,
+            value=None,
+            evidence_status="missing",
+            confidence="low",
+        )
+        for card in cards[:2]
+        for fact in card.required_facts[:3]
+    ]
+    facts_used.extend(missing_facts[:5])
+
+    assumptions = (
+        ["The user is asking with non-sensitive sample facts for demo purposes."]
+        if not cards
+        else [
+            "The answer is based only on the local rule cards available in this repo.",
+            "Any final filing choice must be checked against the user's actual documents.",
+        ]
+    )
+    risks = [
+        "This fallback does not certify a return or guarantee an assessment outcome.",
+        "Missing or misread documents can change the correct filing answer.",
+    ]
+    if cards:
+        risks.extend(note for card in cards[:2] for note in card.uncertainty_notes[:1])
+
+    return Recommendation(
+        answer=answer,
+        rationale=rationale,
+        facts_used=facts_used,
+        required_evidence=_fallback_evidence(cards),
+        assumptions=assumptions,
+        confidence="low" if not cards or missing_facts else "medium",
+        risks=risks,
+        next_step=(
+            "Compare the matched rule card against the relevant document or generated form, "
+            "then ask a follow-up with only non-sensitive sample facts."
+        ),
+        source_card_ids=cited,
+        professional_help_recommended=False,
+    )
+
+
 class Reasoner:
     """Retrieve rule cards for a question, then produce a grounded Recommendation."""
 
@@ -127,10 +304,17 @@ class Reasoner:
         """Lower-level single turn. Returns (Recommendation, cards, raw_result) so a
         session can carry `raw_result.all_messages()` forward as history."""
         cards = self.store.retrieve(question, tax_year=tax_year, limit=3)
-        result = self.agent.run_sync(
-            _build_prompt(question, cards, known_facts),
-            message_history=message_history,
-        )
+        if not _local_model_endpoint_ready(self.cfg.base_url):
+            rec = _local_fallback_recommendation(question, cards, known_facts)
+            return rec, cards, _LocalFallbackResult(message_history)
+        try:
+            result = self.agent.run_sync(
+                _build_prompt(question, cards, known_facts),
+                message_history=message_history,
+            )
+        except Exception:
+            rec = _local_fallback_recommendation(question, cards, known_facts)
+            return rec, cards, _LocalFallbackResult(message_history)
         rec = result.output
         # Grounding backstop: if the model forgot to cite, attach what it was given.
         if not rec.source_card_ids and cards:

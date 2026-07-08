@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from taxagent.agent.reasoner import Reasoner
 from taxagent.models import EvidenceItem, Recommendation, UserFact
 
 app_module = importlib.import_module("taxagent.web.app")
@@ -140,6 +141,50 @@ def test_live_chat_with_pin_uses_ephemeral_session_without_profile(monkeypatch, 
 
     assert res.status_code == 200
     assert res.json()["recommendation"]["answer"].startswith("Demo answer")
+    assert not (tmp_path / "profiles").exists()
+
+
+def test_live_chat_model_backend_failure_is_controlled(monkeypatch):
+    class BrokenReasoner:
+        def run_turn(self, question, **kwargs):
+            raise ConnectionError("model endpoint is down")
+
+    monkeypatch.setattr(app_module, "_get_reasoner", lambda: BrokenReasoner())
+    client = _client(monkeypatch, live=True, pin="correct-pin")
+
+    res = client.post(
+        "/api/chat",
+        headers={"X-Demo-Pin": "correct-pin"},
+        json={"message": "I had an internship in Quebec."},
+    )
+
+    assert res.status_code == 503
+    assert res.json()["detail"]["code"] == "live_backend_unavailable"
+
+
+def test_live_chat_falls_back_locally_when_model_endpoint_is_down(monkeypatch, tmp_path):
+    monkeypatch.setenv("TAXAGENT_PROFILE_DIR", str(tmp_path / "profiles"))
+
+    class BrokenAgent:
+        def run_sync(self, *args, **kwargs):
+            raise ConnectionError("model endpoint is down")
+
+    reasoner = Reasoner()
+    reasoner.agent = BrokenAgent()
+    monkeypatch.setattr(app_module, "_get_reasoner", lambda: reasoner)
+    client = _client(monkeypatch, live=True, pin="correct-pin")
+
+    res = client.post(
+        "/api/chat",
+        headers={"X-Demo-Pin": "correct-pin"},
+        json={"message": "I have tuition carryforward. Why is my refund not huge?"},
+    )
+
+    body = res.json()
+    assert res.status_code == 200
+    assert body["recommendation"]["source_card_ids"]
+    assert body["recommendation"]["required_evidence"]
+    assert "external API" in body["recommendation"]["rationale"]
     assert not (tmp_path / "profiles").exists()
 
 

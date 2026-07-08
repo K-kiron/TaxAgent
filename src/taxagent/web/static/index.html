@@ -1100,6 +1100,11 @@ async function askLive(message) {
       sessionStorage.removeItem("taxagent_demo_pin");
       setModeLabel();
     }
+    if (detail.code === "live_backend_unavailable") {
+      addError(detail.message || "Live agent is unlocked, but the local model service is not reachable. Static workflows are still available.");
+      await askStatic(message);
+      return;
+    }
     addError(detail.message || `Live demo returned ${res.status}. Static workflows are still available.`);
     return;
   }

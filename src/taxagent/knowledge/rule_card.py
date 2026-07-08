@@ -15,6 +15,26 @@ from ..models import RuleCard
 
 # repo_root/knowledge_base  (src/taxagent/knowledge/rule_card.py -> up 4)
 DEFAULT_KB_DIR = Path(__file__).resolve().parents[3] / "knowledge_base"
+_STOPWORDS = {
+    "and",
+    "are",
+    "can",
+    "did",
+    "does",
+    "for",
+    "from",
+    "had",
+    "has",
+    "have",
+    "how",
+    "not",
+    "the",
+    "this",
+    "was",
+    "why",
+    "with",
+    "would",
+}
 
 
 class RuleCardStore:
@@ -40,7 +60,7 @@ class RuleCardStore:
         limit: int = 3,
     ) -> list[RuleCard]:
         """Naive keyword overlap over topic + rule_summary, with optional filters."""
-        terms = {t for t in _tokenize(query) if len(t) > 2}
+        terms = {t for t in _tokenize(query) if len(t) > 2 and t not in _STOPWORDS}
         scored: list[tuple[int, RuleCard]] = []
         for card in self._by_id.values():
             if jurisdiction and card.jurisdiction != jurisdiction:
@@ -63,7 +83,7 @@ def load_default_store(kb_dir: Path | str = DEFAULT_KB_DIR) -> RuleCardStore:
     kb_dir = Path(kb_dir)
     cards: list[RuleCard] = []
     for path in sorted(kb_dir.rglob("*.json")):
-        cards.append(RuleCard.model_validate_json(path.read_text()))
+        cards.append(RuleCard.model_validate_json(path.read_text(encoding="utf-8")))
     if not cards:
         raise FileNotFoundError(f"no rule cards found under {kb_dir}")
     return RuleCardStore(cards)

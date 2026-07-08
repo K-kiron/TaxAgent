@@ -384,10 +384,22 @@ def chat(
     _check_rate_limit(session_id)
     _enter_live_slot()
     try:
-        session, lock = _get_session(session_id)
-        with lock:
-            rec = session.ask(req.message, tax_year=req.tax_year)
+        try:
+            session, lock = _get_session(session_id)
+            with lock:
+                rec = session.ask(req.message, tax_year=req.tax_year)
             return {"recommendation": rec.model_dump(), "profile_facts": _facts_payload(session)}
+        except Exception as exc:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "live_backend_unavailable",
+                    "message": (
+                        "Live agent is unlocked, but the local model service is not reachable. "
+                        "Static workflows are still available."
+                    ),
+                },
+            ) from exc
     finally:
         _leave_live_slot()
 
