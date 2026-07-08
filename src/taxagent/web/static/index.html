@@ -6,43 +6,86 @@
 <title>TaxAgent Canada Demo</title>
 <style>
   :root {
-    --bg:#f7f8fa;
-    --panel:#ffffff;
-    --ink:#172033;
+    --bg:#f5f7fb;
+    --surface:#ffffff;
+    --surface-2:#f9fbff;
+    --ink:#142033;
     --muted:#667085;
-    --line:#d8dee8;
-    --blue:#1f5fbf;
-    --green:#1f7a5a;
-    --amber:#9a5b13;
-    --red:#aa2e2e;
-    --soft-blue:#e9f1ff;
-    --soft-green:#e8f6ef;
-    --soft-amber:#fff4df;
-    --soft-red:#feeaea;
-    --shadow:0 8px 28px rgba(23,32,51,.08);
+    --line:#d9e1ec;
+    --brand:#2357c6;
+    --brand-2:#0f8b6f;
+    --accent:#c7791e;
+    --danger:#af2f38;
+    --nav:#18253a;
+    --nav-2:#22324d;
+    --blue-soft:#eaf1ff;
+    --green-soft:#e7f6f1;
+    --amber-soft:#fff3df;
+    --red-soft:#feecee;
+    --shadow:0 18px 48px rgba(20,32,51,.10);
+    --shadow-sm:0 8px 22px rgba(20,32,51,.08);
   }
   * { box-sizing:border-box; }
-  html, body { min-height:100%; }
+  html, body { min-height:100%; overflow-x:hidden; }
   body {
     margin:0;
     color:var(--ink);
-    background:var(--bg);
+    background:
+      linear-gradient(180deg, #f7f9fd 0%, #eef3fa 46%, #f8fafc 100%);
     font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
   button, input, textarea, select { font:inherit; }
   button { cursor:pointer; }
-  header {
-    min-height:64px;
-    background:var(--panel);
+  .topbar {
+    min-height:68px;
+    background:rgba(255,255,255,.92);
     border-bottom:1px solid var(--line);
     display:flex;
     align-items:center;
-    gap:18px;
-    padding:12px 20px;
+    gap:22px;
+    padding:12px 24px;
+    position:sticky;
+    top:0;
+    z-index:10;
+    backdrop-filter:blur(14px);
   }
-  .brand { display:flex; flex-direction:column; min-width:180px; }
-  .brand strong { font-size:18px; line-height:1.15; }
-  .brand span { color:var(--muted); font-size:12px; }
+  .brand {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:210px;
+  }
+  .mark {
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    color:#fff;
+    display:grid;
+    place-items:center;
+    font-weight:800;
+    background:linear-gradient(135deg, var(--brand), var(--brand-2));
+    box-shadow:var(--shadow-sm);
+  }
+  .brand-copy { display:flex; flex-direction:column; }
+  .brand-copy strong { font-size:17px; line-height:1.1; }
+  .brand-copy span { color:var(--muted); font-size:12px; }
+  .navlinks {
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .navlinks button {
+    border:1px solid transparent;
+    background:transparent;
+    color:var(--muted);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+  .navlinks button:hover {
+    color:var(--ink);
+    background:var(--surface-2);
+    border-color:var(--line);
+  }
   .status {
     margin-left:auto;
     display:flex;
@@ -58,66 +101,220 @@
     background:#fff;
     white-space:nowrap;
   }
-  .pill.live { color:var(--green); background:var(--soft-green); border-color:#b9dfce; }
-  .pill.static { color:var(--blue); background:var(--soft-blue); border-color:#c3d7ff; }
+  .pill.live { color:var(--brand-2); background:var(--green-soft); border-color:#b9dfce; }
+  .pill.static { color:var(--brand); background:var(--blue-soft); border-color:#c6d7ff; }
   .pinbox { display:none; align-items:center; gap:8px; }
   .pinbox.visible { display:flex; }
   .pinbox input {
     width:132px;
     border:1px solid var(--line);
     border-radius:8px;
-    padding:7px 9px;
+    padding:8px 10px;
     background:#fff;
   }
-  .pinbox button, .small-action {
+  .primary, .secondary, .roadmap, .send {
     border:0;
     border-radius:8px;
-    padding:8px 11px;
+    min-height:38px;
+    padding:9px 12px;
+    font-weight:700;
+    max-width:100%;
+    white-space:normal;
+  }
+  .primary, .send {
     color:#fff;
-    background:var(--ink);
+    background:var(--brand);
   }
-  main {
-    width:min(1240px, 100%);
+  .secondary {
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--line);
+  }
+  .roadmap {
+    width:100%;
+    color:var(--ink);
+    background:#fff;
+    border:1px solid var(--line);
+    text-align:left;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .roadmap:hover, .secondary:hover {
+    border-color:#9eb7e7;
+    background:#f8fbff;
+  }
+  .pinbox button { color:#fff; background:var(--nav); }
+  .page {
+    width:min(1360px, 100%);
     margin:0 auto;
-    padding:18px;
-    display:grid;
-    grid-template-columns: 320px minmax(0, 1fr) 320px;
-    gap:16px;
+    padding:20px;
   }
-  .panel {
-    background:var(--panel);
+  .product-hero {
+    display:grid;
+    grid-template-columns:minmax(0, 1.05fr) minmax(320px, .95fr);
+    gap:18px;
+    align-items:stretch;
+    margin-bottom:18px;
+  }
+  .hero-copy, .hero-visual, .panel {
+    background:var(--surface);
     border:1px solid var(--line);
     border-radius:8px;
     box-shadow:var(--shadow);
     min-width:0;
   }
-  .left { padding:14px; height:fit-content; }
-  .left h2, .inspector h2 {
+  .hero-copy {
+    padding:24px;
+    min-height:280px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .eyebrow {
+    color:var(--brand-2);
+    font-weight:800;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0;
+  }
+  h1 {
+    margin:10px 0 10px;
+    max-width:760px;
+    font-size:clamp(34px, 5vw, 58px);
+    line-height:1.02;
+    letter-spacing:0;
+  }
+  .hero-copy p {
+    max-width:min(720px, 40vw);
+    margin:0;
+    color:var(--muted);
+    font-size:16px;
+  }
+  .hero-actions {
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:20px;
+    max-width:min(720px, 40vw);
+  }
+  .hero-actions button {
+    flex:0 1 auto;
+  }
+  .trust-row {
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:10px;
+    margin-top:22px;
+  }
+  .trust-item {
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    background:var(--surface-2);
+  }
+  .trust-item strong { display:block; font-size:13px; }
+  .trust-item span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+  .hero-visual {
+    padding:18px;
+    overflow:hidden;
+  }
+  .screen-preview {
+    border:1px solid #cfd8e6;
+    border-radius:8px;
+    overflow:hidden;
+    min-height:244px;
+    background:#fff;
+  }
+  .preview-top {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    height:36px;
+    padding:0 12px;
+    background:#eef3fb;
+    border-bottom:1px solid var(--line);
+  }
+  .dot { width:8px; height:8px; border-radius:50%; background:#97a6ba; }
+  .preview-body {
+    display:grid;
+    grid-template-columns:160px minmax(0, 1fr);
+    min-height:208px;
+  }
+  .doc-stack {
+    background:#f8fafc;
+    border-right:1px solid var(--line);
+    padding:12px;
+    display:grid;
+    gap:8px;
+  }
+  .doc-chip {
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    padding:9px;
+  }
+  .doc-chip strong { display:block; font-size:12px; }
+  .doc-chip span { display:block; color:var(--muted); font-size:11px; }
+  .analysis-preview { padding:14px; display:grid; gap:10px; }
+  .scoreline {
+    height:10px;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--brand) 0 62%, #d7e1f2 62% 100%);
+  }
+  .mini-card {
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    background:#fff;
+  }
+  .mini-card strong { display:block; font-size:12px; }
+  .mini-card span { color:var(--muted); font-size:11px; }
+  .workspace {
+    display:grid;
+    grid-template-columns:292px minmax(0, 1fr) 330px;
+    gap:16px;
+    align-items:start;
+    min-width:0;
+  }
+  .side-nav {
+    background:linear-gradient(180deg, var(--nav), var(--nav-2));
+    color:#fff;
+    padding:14px;
+  }
+  .side-nav h2, .inspector h2 {
     margin:0 0 10px;
     font-size:14px;
   }
-  .workflow-list, .scenario-list, .sample-actions {
+  .side-caption {
+    color:#c8d2e2;
+    font-size:12px;
+    margin:0 0 14px;
+  }
+  .workflow-list, .scenario-list, .sample-actions, .future-list {
     display:grid;
     gap:8px;
   }
   .workflow {
     width:100%;
     text-align:left;
-    border:1px solid var(--line);
+    border:1px solid rgba(255,255,255,.15);
     border-radius:8px;
-    background:#fff;
-    padding:10px;
+    color:#eef4ff;
+    background:rgba(255,255,255,.06);
+    padding:11px;
   }
   .workflow:hover, .workflow.active {
-    border-color:#8db4f4;
-    background:#f8fbff;
+    border-color:#86b7ff;
+    background:rgba(255,255,255,.13);
   }
   .workflow strong, .scenario strong { display:block; font-size:13px; }
-  .workflow span, .scenario span { display:block; color:var(--muted); font-size:12px; margin-top:3px; }
+  .workflow span, .scenario span { display:block; color:#c8d2e2; font-size:12px; margin-top:3px; }
   .toolbox {
-    margin-top:12px;
-    border-top:1px solid var(--line);
-    padding-top:12px;
+    margin-top:14px;
+    border-top:1px solid rgba(255,255,255,.16);
+    padding-top:14px;
   }
   .toolbox.hidden { display:none; }
   .field {
@@ -126,53 +323,116 @@
     margin-bottom:9px;
   }
   .field label {
-    color:var(--muted);
+    color:#d7e0ef;
     font-size:12px;
     font-weight:700;
   }
   .field input, .field select {
     width:100%;
-    border:1px solid var(--line);
+    border:1px solid rgba(255,255,255,.22);
     border-radius:8px;
     padding:8px 9px;
-    background:#fff;
+    color:#fff;
+    background:rgba(255,255,255,.08);
+  }
+  .field option { color:var(--ink); }
+  .side-nav .secondary {
+    width:100%;
+    color:#fff;
+    background:rgba(255,255,255,.12);
+    border-color:rgba(255,255,255,.22);
+  }
+  .file-note {
+    margin:8px 0 0;
+    color:#c8d2e2;
+    font-size:12px;
   }
   .scenario-list {
-    margin-top:12px;
-    border-top:1px solid var(--line);
-    padding-top:12px;
+    margin-top:14px;
+    border-top:1px solid rgba(255,255,255,.16);
+    padding-top:14px;
   }
   .scenario {
     width:100%;
     text-align:left;
-    border:1px solid var(--line);
+    border:1px solid rgba(255,255,255,.15);
     border-radius:8px;
-    background:#fff;
+    color:#fff;
+    background:rgba(255,255,255,.06);
     padding:10px;
   }
   .scenario:hover, .scenario.active {
-    border-color:#8db4f4;
-    background:#f8fbff;
+    border-color:#86b7ff;
+    background:rgba(255,255,255,.13);
   }
   .privacy {
-    margin-top:12px;
+    margin-top:14px;
     padding:10px;
     border-radius:8px;
-    background:var(--soft-amber);
-    border:1px solid #efd2a3;
-    color:#6f4314;
+    background:rgba(255,243,223,.12);
+    border:1px solid rgba(255,226,179,.35);
+    color:#ffe0ac;
     font-size:12px;
   }
-  .file-note {
-    margin:8px 0 0;
-    color:var(--muted);
+  .future-panel {
+    margin-top:14px;
+    border-top:1px solid rgba(255,255,255,.16);
+    padding-top:14px;
+  }
+  .future-panel h3 {
+    margin:0 0 8px;
     font-size:12px;
+    color:#dbe7f8;
+    text-transform:uppercase;
+    letter-spacing:0;
+  }
+  .future-list .roadmap {
+    color:#eef4ff;
+    background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.16);
+  }
+  .future-list .roadmap span {
+    color:#b9c7db;
+    font-size:12px;
+    font-weight:600;
   }
   .chat {
     display:flex;
     flex-direction:column;
-    min-height:calc(100vh - 104px);
+    min-height:720px;
+    overflow:hidden;
   }
+  .chat-head {
+    padding:16px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:14px;
+  }
+  .chat-head h2 {
+    margin:0;
+    font-size:18px;
+  }
+  .chat-head p {
+    margin:3px 0 0;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .metric-row {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .metric {
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--surface-2);
+    padding:8px 10px;
+    min-width:96px;
+  }
+  .metric strong { display:block; font-size:14px; }
+  .metric span { color:var(--muted); font-size:11px; }
   .log {
     flex:1;
     overflow:auto;
@@ -180,13 +440,14 @@
     display:flex;
     flex-direction:column;
     gap:12px;
+    background:linear-gradient(180deg, #fff 0%, #f8fbff 100%);
   }
   .welcome {
-    align-self:center;
-    max-width:560px;
-    margin:auto;
-    text-align:center;
-    color:var(--muted);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px;
+    background:#fff;
+    box-shadow:var(--shadow-sm);
   }
   .welcome strong {
     display:block;
@@ -194,20 +455,43 @@
     font-size:20px;
     margin-bottom:6px;
   }
+  .welcome p {
+    margin:0;
+    color:var(--muted);
+  }
+  .quick-prompts {
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    gap:8px;
+    margin-top:14px;
+  }
+  .quick-prompts button {
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--surface-2);
+    padding:9px;
+    text-align:left;
+    color:var(--ink);
+  }
+  .quick-prompts button:hover {
+    border-color:#9eb7e7;
+    background:#f3f7ff;
+  }
   .msg {
     max-width:88%;
     border-radius:8px;
-    padding:11px 13px;
+    padding:12px 14px;
     border:1px solid var(--line);
   }
   .msg.user {
     align-self:flex-end;
-    background:var(--soft-blue);
+    background:var(--blue-soft);
     border-color:#c8d9f8;
   }
   .msg.agent {
     align-self:flex-start;
     background:#fff;
+    box-shadow:var(--shadow-sm);
   }
   .rec-title {
     display:flex;
@@ -226,9 +510,9 @@
     font-size:12px;
     font-weight:700;
   }
-  .badge.low { color:var(--amber); background:var(--soft-amber); }
-  .badge.medium { color:var(--blue); background:var(--soft-blue); }
-  .badge.high { color:var(--green); background:var(--soft-green); }
+  .badge.low { color:var(--accent); background:var(--amber-soft); }
+  .badge.medium { color:var(--brand); background:var(--blue-soft); }
+  .badge.high { color:var(--brand-2); background:var(--green-soft); }
   .msg h3 {
     margin:12px 0 4px;
     color:var(--muted);
@@ -244,6 +528,7 @@
     display:grid;
     grid-template-columns:minmax(0, 1fr) auto;
     gap:10px;
+    background:#fff;
   }
   textarea {
     min-height:48px;
@@ -255,16 +540,13 @@
     color:var(--ink);
     background:#fff;
   }
-  .send {
-    min-width:86px;
-    border:0;
-    border-radius:8px;
-    background:var(--blue);
-    color:#fff;
-    font-weight:700;
+  .send:disabled, .secondary:disabled { opacity:.5; cursor:default; }
+  .inspector {
+    padding:14px;
+    height:fit-content;
+    position:sticky;
+    top:88px;
   }
-  .send:disabled, .small-action:disabled { opacity:.5; cursor:default; }
-  .inspector { padding:14px; height:fit-content; position:sticky; top:16px; }
   .inspector-section {
     border-top:1px solid var(--line);
     padding-top:12px;
@@ -282,127 +564,272 @@
   .inspector li { margin-bottom:7px; }
   .empty-side { color:var(--muted); font-size:13px; }
   .error {
-    color:var(--red);
-    background:var(--soft-red);
+    color:var(--danger);
+    background:var(--red-soft);
     border-color:#f5bbbb;
   }
-  @media (max-width:1080px) {
-    main { grid-template-columns:300px minmax(0, 1fr); }
+  .feature-notice {
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    width:min(380px, calc(100vw - 36px));
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    box-shadow:var(--shadow);
+    padding:14px;
+    z-index:20;
+    display:none;
+  }
+  .feature-notice.visible { display:block; }
+  .feature-notice strong { display:block; margin-bottom:4px; }
+  .feature-notice p { margin:0; color:var(--muted); }
+  .feature-notice button {
+    margin-top:10px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    padding:7px 10px;
+  }
+  @media (max-width:1120px) {
+    .product-hero { grid-template-columns:1fr; }
+    .workspace { grid-template-columns:292px minmax(0, 1fr); }
     .inspector { grid-column:1 / -1; position:static; }
   }
-  @media (max-width:760px) {
-    header { align-items:flex-start; flex-direction:column; gap:10px; }
+  @media (max-width:780px) {
+    .topbar { align-items:flex-start; flex-direction:column; gap:10px; }
+    .navlinks { flex-wrap:wrap; }
     .status { margin-left:0; width:100%; flex-wrap:wrap; }
-    main { grid-template-columns:1fr; padding:12px; }
-    .chat { min-height:620px; }
+    .page { padding:12px 42px 12px 12px; }
+    .product-hero, .workspace { grid-template-columns:minmax(0, 1fr); width:100%; }
+    .hero-copy, .hero-visual, .panel {
+      width:calc(100vw - 54px);
+      max-width:calc(100vw - 54px);
+    }
+    .hero-copy { padding:18px; }
+    h1 { font-size:34px; }
+    .hero-copy p { max-width:100%; overflow-wrap:anywhere; }
+    .hero-actions { max-width:100%; }
+    .hero-actions { align-items:stretch; }
+    .hero-actions button { width:100%; flex:1 1 100%; }
+    .trust-row, .quick-prompts { grid-template-columns:1fr; }
+    .preview-body { grid-template-columns:1fr; }
+    .doc-stack { border-right:0; border-bottom:1px solid var(--line); }
+    .chat { min-height:640px; }
+    .chat-head { flex-direction:column; }
     .msg { max-width:96%; }
     .composer { grid-template-columns:1fr; }
     .send { min-height:44px; }
     .pinbox input { width:150px; }
   }
+  @media (max-width:430px) {
+    .page { padding:12px 72px 12px 12px; }
+    .hero-copy, .hero-visual, .panel {
+      width:calc(100vw - 84px);
+      max-width:calc(100vw - 84px);
+    }
+    .hero-copy p { font-size:15px; }
+  }
 </style>
 </head>
 <body>
-<header>
+<header class="topbar">
   <div class="brand">
-    <strong>TaxAgent Canada</strong>
-    <span>Festival demo</span>
+    <div class="mark">T</div>
+    <div class="brand-copy">
+      <strong>TaxAgent Canada</strong>
+      <span>Private tax copilot demo</span>
+    </div>
   </div>
+  <nav class="navlinks" aria-label="Product sections">
+    <button type="button" data-jump="#workspace">Demo console</button>
+    <button type="button" data-jump="#roadmap">Roadmap</button>
+    <button type="button" data-future="Advisor Review" data-stage="Pilot design">Advisor review</button>
+  </nav>
   <div class="status">
     <span id="mode" class="pill static">Static demo</span>
     <div id="pinbox" class="pinbox">
       <input id="pin" type="password" autocomplete="off" placeholder="Demo PIN" />
-      <button id="unlock" type="button">Unlock live</button>
+      <button id="unlock" class="primary" type="button">Unlock live</button>
     </div>
   </div>
 </header>
 
-<main>
-  <section class="panel left">
-    <h2>Workflows</h2>
-    <div id="workflowList" class="workflow-list"></div>
-
-    <div id="manualTool" class="toolbox hidden">
-      <div class="field">
-        <label for="taxYear">Tax year</label>
-        <input id="taxYear" value="2025" inputmode="numeric" />
+<main class="page">
+  <section class="product-hero">
+    <div class="hero-copy">
+      <div>
+        <div class="eyebrow">Festival-ready public demo</div>
+        <h1>TaxAgent Canada</h1>
+        <p>
+          A privacy-first tax assistant that turns sample slips, residency facts, and
+          software questions into evidence-backed filing guidance. Public visitors see a
+          safe static experience; your PIN unlocks the private live agent when enabled.
+        </p>
+        <div class="hero-actions">
+          <button class="primary" type="button" data-jump="#workspace">Open demo console</button>
+          <button class="secondary" type="button" data-future="Live document extraction" data-stage="Private deployment pending">Preview upcoming OCR</button>
+        </div>
       </div>
-      <div class="field">
-        <label for="province">Province</label>
-        <select id="province">
-          <option>Quebec</option>
-          <option>Ontario</option>
-          <option>British Columbia</option>
-          <option>Alberta</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="residency">Residency timeline</label>
-        <input id="residency" value="Quebec resident for part or all of the year" />
-      </div>
-      <div class="field">
-        <label for="income">Income/slips</label>
-        <select id="income">
-          <option>Internship or employment income</option>
-          <option>Student with low income</option>
-          <option>Mixed employment and tuition facts</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="tuition">Tuition</label>
-        <select id="tuition">
-          <option>Unused tuition carryforward</option>
-          <option>Current year tuition slip</option>
-          <option>No tuition facts</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="insurance">Insurance coverage</label>
-        <select id="insurance">
-          <option>Uncertain Quebec drug insurance months</option>
-          <option>Employer group plan for some months</option>
-          <option>RAMQ timing changed during the year</option>
-        </select>
-      </div>
-      <button id="analyzeIntake" class="small-action" type="button">Analyze intake</button>
-    </div>
-
-    <div id="slipTool" class="toolbox hidden">
-      <div class="field">
-        <label for="slipFile">Local slip file</label>
-        <input id="slipFile" type="file" />
-      </div>
-      <div id="fileNote" class="file-note">File content is not uploaded in the public demo.</div>
-      <div class="sample-actions">
-        <button id="sampleT4" class="small-action" type="button">Use sample T4/RL-1</button>
-        <button id="sampleTuition" class="small-action" type="button">Use sample T2202</button>
+      <div class="trust-row">
+        <div class="trust-item">
+          <strong>No public uploads</strong>
+          <span>Local filenames only in static mode</span>
+        </div>
+        <div class="trust-item">
+          <strong>PIN-gated live agent</strong>
+          <span>Model access stays private</span>
+        </div>
+        <div class="trust-item">
+          <strong>Evidence-first answers</strong>
+          <span>Facts, risks, and next steps visible</span>
+        </div>
       </div>
     </div>
 
-    <div id="scenarioList" class="scenario-list"></div>
-    <div class="privacy">
-      Use sample facts only. Do not enter SIN, addresses, account numbers, tax slip text, or exact real income.
+    <div class="hero-visual" aria-label="TaxAgent product preview">
+      <div class="screen-preview">
+        <div class="preview-top">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="pill static">Secure static workspace</span>
+        </div>
+        <div class="preview-body">
+          <div class="doc-stack">
+            <div class="doc-chip"><strong>T4 / RL-1</strong><span>Employment facts</span></div>
+            <div class="doc-chip"><strong>T2202</strong><span>Tuition credits</span></div>
+            <div class="doc-chip"><strong>RAMQ timeline</strong><span>Coverage evidence</span></div>
+          </div>
+          <div class="analysis-preview">
+            <div class="mini-card"><strong>Question detected</strong><span>Quebec drug insurance premium</span></div>
+            <div class="scoreline"></div>
+            <div class="mini-card"><strong>Evidence request</strong><span>Benefits booklet and month-by-month coverage</span></div>
+            <div class="mini-card"><strong>Next step</strong><span>Compare generated forms before filing</span></div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="panel chat">
-    <div id="log" class="log">
-      <div class="welcome">
-        <strong>Try TaxAgent as a product flow.</strong>
-        Ask a tax question, fill a sample situation, or review sample slips. Public mode is static and safe; PIN unlocks private live reasoning only when enabled.
-      </div>
-    </div>
-    <div class="composer">
-      <textarea id="input" placeholder="Ask with non-sensitive sample facts, e.g. 'new PR got RAMQ card in October'"></textarea>
-      <button id="send" class="send" type="button">Ask</button>
-    </div>
-  </section>
+  <section id="workspace" class="workspace">
+    <aside class="panel side-nav">
+      <h2>Demo workflows</h2>
+      <p class="side-caption">Use sample facts only. The public URL never needs real taxpayer data.</p>
+      <div id="workflowList" class="workflow-list"></div>
 
-  <aside class="panel inspector">
-    <h2>Evidence and risk</h2>
-    <div id="inspector" class="empty-side">Run a workflow to see facts, evidence, risks, and next steps.</div>
-  </aside>
+      <div id="manualTool" class="toolbox hidden">
+        <div class="field">
+          <label for="taxYear">Tax year</label>
+          <input id="taxYear" value="2025" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="province">Province</label>
+          <select id="province">
+            <option>Quebec</option>
+            <option>Ontario</option>
+            <option>British Columbia</option>
+            <option>Alberta</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="residency">Residency timeline</label>
+          <input id="residency" value="Quebec resident for part or all of the year" />
+        </div>
+        <div class="field">
+          <label for="income">Income/slips</label>
+          <select id="income">
+            <option>Internship or employment income</option>
+            <option>Student with low income</option>
+            <option>Mixed employment and tuition facts</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tuition">Tuition</label>
+          <select id="tuition">
+            <option>Unused tuition carryforward</option>
+            <option>Current year tuition slip</option>
+            <option>No tuition facts</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="insurance">Insurance coverage</label>
+          <select id="insurance">
+            <option>Uncertain Quebec drug insurance months</option>
+            <option>Employer group plan for some months</option>
+            <option>RAMQ timing changed during the year</option>
+          </select>
+        </div>
+        <button id="analyzeIntake" class="secondary" type="button">Analyze intake</button>
+      </div>
+
+      <div id="slipTool" class="toolbox hidden">
+        <div class="field">
+          <label for="slipFile">Local slip file</label>
+          <input id="slipFile" type="file" />
+        </div>
+        <div id="fileNote" class="file-note">File content is not uploaded in the public demo.</div>
+        <div class="sample-actions">
+          <button id="sampleT4" class="secondary" type="button">Use sample T4/RL-1</button>
+          <button id="sampleTuition" class="secondary" type="button">Use sample T2202</button>
+        </div>
+      </div>
+
+      <div id="scenarioList" class="scenario-list"></div>
+      <div class="privacy">
+        Do not enter SIN, addresses, account numbers, tax slip text, or exact real income.
+      </div>
+
+      <div id="roadmap" class="future-panel">
+        <h3>Future modules</h3>
+        <div class="future-list">
+          <button class="roadmap" type="button" data-future="CRA Auto-fill import" data-stage="Not deployed for public demo">CRA Auto-fill <span>In development</span></button>
+          <button class="roadmap" type="button" data-future="Revenu Quebec submission" data-stage="Compliance review pending">RQ submission <span>Planned</span></button>
+          <button class="roadmap" type="button" data-future="Live slip OCR" data-stage="Private environment only">Slip OCR <span>Deploying</span></button>
+          <button class="roadmap" type="button" data-future="Advisor handoff" data-stage="Pilot design">Advisor handoff <span>Prototype</span></button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel chat">
+      <div class="chat-head">
+        <div>
+          <h2>Secure demo console</h2>
+          <p>Ask, fill a sample situation, or simulate slip review without exposing real data.</p>
+        </div>
+        <div class="metric-row">
+          <div class="metric"><strong>0</strong><span>public files uploaded</span></div>
+          <div class="metric"><strong>6</strong><span>static scenarios</span></div>
+          <div class="metric"><strong>PIN</strong><span>private live mode</span></div>
+        </div>
+      </div>
+      <div id="log" class="log">
+        <div class="welcome">
+          <strong>Start with a realistic tax workflow.</strong>
+          <p>The public demo shows how TaxAgent structures facts, evidence, risks, and next steps before filing.</p>
+          <div class="quick-prompts">
+            <button type="button" data-prompt="new permanent resident got RAMQ card months after landing">New PR and RAMQ timing</button>
+            <button type="button" data-prompt="review a sample T4 RL-1 T2202 tax slip before filing">Review sample tax slips</button>
+            <button type="button" data-prompt="fill province residency tuition employment insurance facts manually">Manual filing intake</button>
+          </div>
+        </div>
+      </div>
+      <div class="composer">
+        <textarea id="input" placeholder="Ask with non-sensitive sample facts, e.g. 'new PR got RAMQ card in October'"></textarea>
+        <button id="send" class="send" type="button">Ask</button>
+      </div>
+    </section>
+
+    <aside class="panel inspector">
+      <h2>Evidence and risk</h2>
+      <div id="inspector" class="empty-side">Run a workflow to see facts, evidence, risks, and next steps.</div>
+    </aside>
+  </section>
 </main>
+
+<div id="featureNotice" class="feature-notice" role="status" aria-live="polite">
+  <strong id="featureTitle">Feature in development</strong>
+  <p id="featureBody">This module is not deployed in the public demo yet.</p>
+  <button id="featureClose" type="button">Close</button>
+</div>
 
 <script>
 const $ = selector => document.querySelector(selector);
@@ -419,6 +846,9 @@ const unlock = $("#unlock");
 const manualTool = $("#manualTool");
 const slipTool = $("#slipTool");
 const fileNote = $("#fileNote");
+const featureNotice = $("#featureNotice");
+const featureTitle = $("#featureTitle");
+const featureBody = $("#featureBody");
 
 let scenarios = [];
 let selected = null;
@@ -556,6 +986,7 @@ function setWorkflow(id) {
   markWorkflow();
   renderTools();
   renderScenarios();
+  document.querySelector("#workspace").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function markWorkflow() {
@@ -698,6 +1129,12 @@ function sampleSlip(kind) {
   askMessage(message);
 }
 
+function showFuture(name, stage) {
+  featureTitle.textContent = `${name} is still being deployed`;
+  featureBody.textContent = `${stage}. It is intentionally disabled on the public festival URL, so visitors can explore the product direction without touching private systems or real taxpayer data.`;
+  featureNotice.classList.add("visible");
+}
+
 async function boot() {
   const [cfgRes, scenarioRes] = await Promise.all([
     fetch("/api/demo-config").catch(() => null),
@@ -728,6 +1165,18 @@ $("#slipFile").addEventListener("change", event => {
   fileNote.textContent = file
     ? `${file.name} selected locally. Public demo will not upload or read its content.`
     : "File content is not uploaded in the public demo.";
+});
+$("#featureClose").addEventListener("click", () => featureNotice.classList.remove("visible"));
+document.querySelectorAll("[data-future]").forEach(button => {
+  button.addEventListener("click", () => showFuture(button.dataset.future, button.dataset.stage));
+});
+document.querySelectorAll("[data-jump]").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelector(button.dataset.jump)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
+document.querySelectorAll("[data-prompt]").forEach(button => {
+  button.addEventListener("click", () => askMessage(button.dataset.prompt));
 });
 input.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey) {
