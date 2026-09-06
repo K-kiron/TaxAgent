@@ -42,6 +42,8 @@ class TaxSession:
         self.user_id = user_id
         self._store = store
         self._writer = writer
+        self._owns_writer = False
+        self._closed = False
         self.history = None  # Pydantic AI message list carried across turns
         self._facts: dict[str, UserFact] = {}
         self.transcript: list[tuple[str, Recommendation]] = []
@@ -49,20 +51,34 @@ class TaxSession:
         # Returning user: load their persistent profile so prior facts are already known.
         if user_id:
             self._store = self._store or ProfileStore()
-            self._writer = self._writer or default_writer()
-            profile = self._store.load(user_id)
-            self._facts = dict(profile.facts)
-            if self.default_tax_year is None:
+            if self._writer is None:
+                if store is not None:
+                    self._writer = AsyncProfileWriter(self._store)
+                    self._owns_writer = True
+                else:
+                    self._writer = default_writer()
+            profile = self._store.load(user_id, tax_year=self.default_tax_year)
+            if self.default_tax_year is None and profile.tax_year is not None:
                 self.default_tax_year = profile.tax_year
+            if self.default_tax_year is not None and profile.tax_year == self.default_tax_year:
+                self._facts = dict(profile.facts)
 
     @property
     def known_facts(self) -> list[UserFact]:
         return list(self._facts.values())
 
     def ask(self, question: str, *, tax_year: int | None = None) -> Recommendation:
+        if self._closed:
+            raise RuntimeError("tax session is closed")
+        effective_tax_year = tax_year or self.default_tax_year
+        if self.default_tax_year is None and effective_tax_year is not None:
+            self.default_tax_year = effective_tax_year
+        elif tax_year is not None and self.default_tax_year is not None and tax_year != self.default_tax_year:
+            raise ValueError("tax_year cannot change within one TaxSession; start a new TaxSession")
+
         rec, _cards, result = self.reasoner.run_turn(
             question,
-            tax_year=tax_year or self.default_tax_year,
+            tax_year=effective_tax_year,
             known_facts=self.known_facts or None,
             message_history=self.history,
         )
@@ -92,4 +108,12 @@ class TaxSession:
             self._writer.flush()
 
     def close(self) -> None:
-        self.flush()
+        if self._closed:
+            return
+        self._closed = True
+        if self._writer is None:
+            return
+        if self._owns_writer:
+            self._writer.close()
+        else:
+            self._writer.flush()

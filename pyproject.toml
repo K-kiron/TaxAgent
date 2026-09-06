@@ -1,7 +1,7 @@
 [project]
 name = "taxagent"
-version = "0.0.1"
-description = "TaxAgent Canada — MVP harness (Québec-aware personal tax reasoning assistant)"
+version = "0.1.0"
+description = "TaxAgent Canada - local 2025 Quebec and federal return workspace"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.7",
@@ -9,18 +9,27 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["build>=1.2", "pytest>=8"]
 web = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
 
 [project.scripts]
 taxagent = "taxagent.cli:main"
 
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+taxagent = [
+    "data/knowledge_base/**/*.json",
+    "web/static/*.html",
+    "web/static/*.css",
+    "web/static/*.js",
+    "web/static/*.json",
+]
 
 [tool.ruff]
 line-length = 100

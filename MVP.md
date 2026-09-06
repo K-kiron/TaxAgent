@@ -22,7 +22,7 @@ src/taxagent/
     graders.py         # Layer 1 structural (deterministic) + negation-aware smoke + safety gate
     run_evals.py       # runner
   cli.py               # taxagent ask | eval | rule-card
-knowledge_base/        # JSON rule cards (prototype content, source_type + last_verified)
+src/taxagent/data/knowledge_base/  # packaged JSON rule cards (source_type + last_verified)
 tests/                 # unit graders/models + live serve smoke (auto-skips if serve down)
 infra/                 # serve + stop scripts
 ```

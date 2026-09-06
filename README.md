@@ -1,8 +1,47 @@
 # TaxAgent Canada
 
-A Canada-first personal tax assistant for individuals who need help understanding tax forms, software questions, eligibility rules, credits, and province-specific edge cases.
+TaxAgent Canada is a local-first preparation workspace for a bounded 2025 Quebec and federal personal return. The implemented local workflow helps a user collect supported slips and facts, calculate covered federal and Quebec lines, review blockers, and export JSON or a review packet. It does not submit a return, request CRA/Revenu Quebec credentials, or claim filing certification.
 
-TaxAgent Canada is not meant to replace certified tax professionals. The goal is to build a careful, source-grounded assistant that helps users understand what a tax question is asking, collect the right evidence, reason through eligibility, and make safer decisions when using products such as TurboTax, Wealthsimple Tax, UFile, or CRA/Revenu Québec portals.
+The current calculation release is intentionally narrow: a full-year Canadian and Quebec resident, single, no dependants, covered salary/student facts, supported slips, and explicit confirmations for missing information, scholarships/RESP, student-loan interest, moving expenses, tips/other employment income, Schedule B, and additional T1/TP-1 filing screens. Unsupported facts block calculation instead of producing estimated numbers.
+
+For the browser workflow, see [docs/user_guide.md](docs/user_guide.md). For the implemented form and exclusion matrix, see [docs/coverage.md](docs/coverage.md).
+
+## Quickstart
+
+Install the local web extra and start the browser workspace:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install ".[web]"
+.\.venv\Scripts\taxagent.exe doctor
+.\.venv\Scripts\taxagent.exe start
+```
+
+Open:
+
+```text
+http://127.0.0.1:8056
+```
+
+Useful local commands:
+
+```powershell
+.\.venv\Scripts\taxagent.exe doctor
+.\.venv\Scripts\taxagent.exe rule-card list
+.\.venv\Scripts\taxagent.exe calculate .\taxagent_slips.v1.json --output .\taxagent_calculation_packet.v1.json
+.\.venv\Scripts\taxagent.exe profile --user demo --tax-year 2025
+```
+
+Modes:
+
+* Local preparation/calculation mode: no submission and no model dependency. It collects explicit inputs, preserves provenance, and produces a line-by-line packet only for supported 2025 Quebec and federal cases.
+* Example demo mode: canned examples only. These examples show product behavior and are secondary to the local preparation workspace.
+* Live advisory mode: requires an explicit private OpenAI-compatible endpoint and `doctor --live` should pass before use.
+
+### Local profile compatibility
+
+Saved chat profiles are opt-in through `taxagent chat --user ...`. New profile filenames include a short hash of the exact user ID plus a `-tyYYYY` suffix when the tax year is known, so IDs such as `a/b` and `a?b` do not collide and the same user can keep separate years. Existing hashed or sanitized unsuffixed profile files are still read when their embedded user ID and tax year match; new year-specific saves leave those files in place. Calls that omit a tax year keep using the unsuffixed no-year profile path, so pass a tax year for deterministic year-specific reads. A persisted chat session is scoped to one tax year, so start a new `TaxSession` when switching years.
 
 ## Festival Demo
 
@@ -45,7 +84,7 @@ The assistant should help users:
 6. Provide source-backed reasoning for credits, premiums, deductions, and carryforwards.
 7. Produce a concise audit trail showing why a choice was made.
 
-The initial product is advisory and educational. It should not file a return automatically, submit forms, or claim professional certification unless those capabilities are explicitly implemented and legally reviewed.
+Historical note: the advisory-only product vision is retained as background for the chat assistant. The current local release adds deterministic calculation only within the bounded 2025 Quebec preparation scope, and it still does not file a return, submit forms, or claim professional certification.
 
 ## Initial Scope
 
@@ -366,16 +405,9 @@ duplicated here to avoid drift.
 
 ## Repository Status
 
-This repository is currently an early-stage product and research prototype.
+The repository now contains a bounded local preparation release for 2025 Quebec and federal returns. The implemented path includes packaged rule cards, a local browser workspace, typed JSON import/export, deterministic line-by-line calculation for the documented supported profile, blocked-result handling for unsupported facts, and CLI packaging checks.
 
-Recommended immediate work:
-
-* Build the first scenario harness.
-* Add source-backed tax rule cards.
-* Implement structured fact extraction.
-* Create golden test conversations.
-* Add refusal and uncertainty behavior tests.
-* Build a minimal UI for question-answering and rationale export.
+Current limitations remain material: the app does not submit returns, is not CRA/Revenu Quebec certified, does not request government credentials, and blocks outside the documented 2025 Quebec salary/student scope. Historical advisory and product-vision notes are retained as design background; the implemented coverage boundary is [docs/coverage.md](docs/coverage.md).
 
 ## Disclaimer
 

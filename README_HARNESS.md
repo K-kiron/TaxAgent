@@ -141,11 +141,11 @@ taxagent/
       evals/
         schemas.py
         graders.py
-  knowledge_base/
-    canada_federal/
-    quebec/
-    ramq/
-    tax_software/
+      data/
+        knowledge_base/
+          canada_federal/
+          quebec/
+          tax_software/
   tests/
     unit/
     golden/
