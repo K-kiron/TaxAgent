@@ -1,59 +1,128 @@
-# TaxAgent Canada
+<p align="center">
+  <img src="assets/taxagent-logo.png" alt="TaxAgent Canada logo" width="128">
+</p>
 
-TaxAgent Canada is a local-first assistant for understanding Canadian personal tax questions, with special attention to Quebec-specific tax software and filing decisions. It helps users ask source-grounded questions, track facts across a conversation, inspect the rule-card knowledge base, and review evidence-aware recommendations.
+<h1 align="center">TaxAgent Canada</h1>
 
-TaxAgent does not submit returns, request CRA or Revenu Quebec credentials, connect to government accounts, or claim filing certification.
+<p align="center">
+  Source-grounded Canadian tax guidance tools with a careful Quebec focus.
+</p>
 
-## Current scope
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#configure-the-advisory-endpoint">Endpoint config</a> ·
+  <a href="#commands">Commands</a> ·
+  <a href="#privacy">Privacy</a>
+</p>
 
-The current development branch provides an advisory command-line assistant and a rule-card knowledge base. It is useful for explaining tax-software questions, preserving a small opt-in profile, and reviewing the sources behind an answer.
+<p align="center">
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square">
+  <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square">
+  <img alt="CLI" src="https://img.shields.io/badge/Interface-CLI-lightgrey?style=flat-square">
+</p>
 
-It is not certified tax software and does not calculate or file a complete return from slips.
+TaxAgent Canada helps users reason through Canadian and Quebec personal tax questions by combining structured facts, source-backed rule cards, and conservative recommendations.
 
-## Quickstart
+This branch is an advisory CLI prototype. It does not include the local 2025 calculation browser workspace, does not submit returns, and does not claim filing certification.
 
-Create a local environment and install the package:
+## Quick start
+
+<details open>
+<summary>Windows PowerShell</summary>
 
 ```powershell
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
+cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-Ask a question:
+</details>
+
+<details>
+<summary>Linux or macOS</summary>
+
+```bash
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
+cd TaxAgent
+python3.11 -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev]"
+```
+
+</details>
+
+## Configure the advisory endpoint
+
+The advisory commands send prompts and structured context to the OpenAI-compatible endpoint you configure. The default development settings are:
+
+| Variable | Default |
+| --- | --- |
+| `TAXAGENT_BASE_URL` | `http://127.0.0.1:8011/v1` |
+| `TAXAGENT_MODEL` | `qwen` |
+| `TAXAGENT_API_KEY` | `EMPTY` |
+| `TAXAGENT_OUTPUT_MODE` | `native` |
+| `TAXAGENT_TEMPERATURE` | `0` |
+| `TAXAGENT_PROFILE_DIR` | `.profiles` inside the checkout |
+
+Set these variables to match an endpoint you are authorized to use. TaxAgent does not provide upstream model access or credentials.
+
+Windows PowerShell:
+
+```powershell
+$env:TAXAGENT_BASE_URL = "http://127.0.0.1:8011/v1"
+$env:TAXAGENT_MODEL = "qwen"
+$env:TAXAGENT_API_KEY = "EMPTY"
+```
+
+Linux or macOS:
+
+```bash
+export TAXAGENT_BASE_URL="http://127.0.0.1:8011/v1"
+export TAXAGENT_MODEL="qwen"
+export TAXAGENT_API_KEY="EMPTY"
+```
+
+## Commands
 
 ```powershell
 .\.venv\Scripts\taxagent.exe ask "What does the Quebec prescription drug insurance question mean?" --tax-year 2025 --show-cards
-```
-
-Start an opt-in local chat profile:
-
-```powershell
 .\.venv\Scripts\taxagent.exe chat --user demo --tax-year 2025
 .\.venv\Scripts\taxagent.exe profile --user demo
+.\.venv\Scripts\taxagent.exe eval --all
+.\.venv\Scripts\taxagent.exe rule-card list --jurisdiction quebec
 ```
 
-Inspect available rule cards:
+| Command | Purpose |
+| --- | --- |
+| `ask` | Answer one tax question through the configured advisory endpoint. |
+| `chat` | Continue a local session and optionally save a local fact profile. |
+| `profile` | Inspect a saved local profile. |
+| `eval` | Run the scenario evaluation harness. |
+| `rule-card list` | Inspect available source-backed rule cards. |
 
-```powershell
-.\.venv\Scripts\taxagent.exe rule-card list
+## Privacy
+
+The CLI runs locally, but advisory prompts and relevant context are sent to the configured endpoint when you use `ask` or `chat`. Use a local endpoint if you want the advisory flow to stay on your machine.
+
+Saved chat profiles are opt-in through `taxagent chat --user ...`. Omit `--user` to avoid profile persistence. Local profile files are plaintext, so use a non-sensitive user ID and store the checkout in a location you trust.
+
+## Related branch
+
+The local 2025 Quebec/federal preparation workspace is available on:
+
+```bash
+git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
 ```
 
-Run the scenario harness:
+That branch has its own README and browser quick start.
 
-```powershell
-.\.venv\Scripts\taxagent.exe eval
-```
+## License
 
-## Privacy and local operation
+Apache License 2.0. See [LICENSE](LICENSE).
 
-The advisory CLI runs locally. Saved chat profiles are opt-in through `taxagent chat --user ...`; omit `--user` to avoid profile persistence. Local profile files are plaintext, so use a non-sensitive user ID and store the project in a location you trust.
+## Disclaimer
 
-## Documentation
-
-- [README_HARNESS.md](README_HARNESS.md) documents the scenario harness, response contract, and evaluation checks.
-- Rule cards live in `knowledge_base/` and contain the source-backed tax concepts used by the advisory assistant.
-
-## Limitations
-
-TaxAgent does not provide certified tax, legal, accounting, or financial advice. It does not guarantee outcomes, replace a qualified professional, or change records in CRA, Revenu Quebec, RAMQ, tax software, or financial accounts. Users should verify important decisions against official sources and their own records before filing.
+TaxAgent Canada is not certified tax software and does not provide certified tax, legal, accounting, or financial advice. Verify important decisions against official sources or a qualified professional before filing.
