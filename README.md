@@ -33,13 +33,13 @@ It does not file a return, connect to CRA or Revenu Quebec accounts, request gov
 
 ## Quick Start
 
-Install from the current issue branch with the local web extra.
+Clone the main branch and install the local web extra.
 
 <details open>
 <summary>Windows PowerShell</summary>
 
 ```powershell
-git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
+git clone https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
@@ -53,10 +53,10 @@ Open the [local TaxAgent app](http://127.0.0.1:8056).
 </details>
 
 <details>
-<summary>Linux</summary>
+<summary>Linux or macOS</summary>
 
 ```bash
-git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
+git clone https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 python3.11 -m venv .venv
 . .venv/bin/activate
