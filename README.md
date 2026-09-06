@@ -5,38 +5,45 @@
 <h1 align="center">TaxAgent Canada</h1>
 
 <p align="center">
-  Source-grounded Canadian tax guidance tools with a careful Quebec focus.
+  Local-first preparation workspace for a bounded 2025 Quebec and federal personal return.
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick start</a> ·
-  <a href="#configure-the-advisory-endpoint">Endpoint config</a> ·
-  <a href="#commands">Commands</a> ·
-  <a href="#privacy">Privacy</a>
+  <a href="#what-it-does">What it does</a> ·
+  <a href="#privacy">Privacy</a> ·
+  <a href="docs/user_guide.md">User guide</a> ·
+  <a href="docs/coverage.md">Coverage</a>
 </p>
 
 <p align="center">
   <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square">
   <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square">
-  <img alt="CLI" src="https://img.shields.io/badge/Interface-CLI-lightgrey?style=flat-square">
+  <img alt="Localhost app" src="https://img.shields.io/badge/Localhost-127.0.0.1-green?style=flat-square">
 </p>
 
-TaxAgent Canada helps users reason through Canadian and Quebec personal tax questions by combining structured facts, source-backed rule cards, and conservative recommendations.
+TaxAgent Canada helps a user collect supported slips and facts, calculate covered federal and Quebec return lines, review blockers, and export JSON or a human-readable review packet.
 
-This branch is an advisory CLI prototype. It does not include the local 2025 calculation browser workspace, does not submit returns, and does not claim filing certification.
+It does not submit a return, request CRA or Revenu Quebec credentials, connect to government accounts, or claim filing certification.
 
 ## Quick start
+
+Clone this branch and install the local web extra.
 
 <details open>
 <summary>Windows PowerShell</summary>
 
 ```powershell
-git clone --branch dev https://github.com/K-kiron/TaxAgent.git
+git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install ".[web]"
+.\.venv\Scripts\taxagent.exe doctor
+.\.venv\Scripts\taxagent.exe start
 ```
+
+Open `http://127.0.0.1:8056`.
 
 </details>
 
@@ -44,80 +51,65 @@ py -3.11 -m venv .venv
 <summary>Linux or macOS</summary>
 
 ```bash
-git clone --branch dev https://github.com/K-kiron/TaxAgent.git
+git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 python3.11 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e ".[dev]"
+python -m pip install ".[web]"
+taxagent doctor
+taxagent start
 ```
+
+Open `http://127.0.0.1:8056`.
 
 </details>
 
-## Configure the advisory endpoint
+## What it does
 
-The advisory commands send prompts and structured context to the OpenAI-compatible endpoint you configure. The default development settings are:
-
-| Variable | Default |
+| Area | Current support |
 | --- | --- |
-| `TAXAGENT_BASE_URL` | `http://127.0.0.1:8011/v1` |
-| `TAXAGENT_MODEL` | `qwen` |
-| `TAXAGENT_API_KEY` | `EMPTY` |
-| `TAXAGENT_OUTPUT_MODE` | `native` |
-| `TAXAGENT_TEMPERATURE` | `0` |
-| `TAXAGENT_PROFILE_DIR` | `.profiles` inside the checkout |
+| Return year | 2025 |
+| Jurisdiction | Federal Canada + Quebec |
+| Profile | Full-year Canadian and Quebec resident, single, no dependants, age 19 to 64 |
+| Income path | Supported salary/student facts with explicit coverage questions |
+| Slips | T4, RL-1, T4A, T5, RL-3, T2202, RRSP receipt, RC210, RL-19 supported fields |
+| Output | Federal and Quebec line tables, schedules, blockers, warnings, source/provenance details, JSON export, text review packet |
+| Filing | Review artifact only; no NETFILE, ReFILE, Revenu Quebec submission, or government-account access |
 
-Set these variables to match an endpoint you are authorized to use. TaxAgent does not provide upstream model access or credentials.
+Unsupported facts block calculation instead of producing estimated numbers. The detailed profile, form-line coverage, and exclusions are in [docs/coverage.md](docs/coverage.md).
 
-Windows PowerShell:
+## Browser workflow
+
+1. Check whether your situation fits the supported 2025 Quebec profile.
+2. Enter supported slips, account-review facts, and required confirmations.
+3. Calculate covered federal and Quebec return lines.
+4. Review blockers, warnings, T1/TP-1 lines, schedules, and source details.
+5. Save editable input JSON or a text review packet.
+
+The browser supports structured JSON import and manual slip entry. A slip row can show a local PDF preview using the browser's built-in viewer, but this release does not extract boxes from PDFs or OCR scanned slips.
+
+## CLI commands
 
 ```powershell
-$env:TAXAGENT_BASE_URL = "http://127.0.0.1:8011/v1"
-$env:TAXAGENT_MODEL = "qwen"
-$env:TAXAGENT_API_KEY = "EMPTY"
+.\.venv\Scripts\taxagent.exe doctor
+.\.venv\Scripts\taxagent.exe rule-card list
+.\.venv\Scripts\taxagent.exe calculate .\taxagent_slips.v1.json --output .\taxagent_calculation_packet.v1.json
+.\.venv\Scripts\taxagent.exe profile --user demo --tax-year 2025
 ```
 
-Linux or macOS:
-
-```bash
-export TAXAGENT_BASE_URL="http://127.0.0.1:8011/v1"
-export TAXAGENT_MODEL="qwen"
-export TAXAGENT_API_KEY="EMPTY"
-```
-
-## Commands
-
-```powershell
-.\.venv\Scripts\taxagent.exe ask "What does the Quebec prescription drug insurance question mean?" --tax-year 2025 --show-cards
-.\.venv\Scripts\taxagent.exe chat --user demo --tax-year 2025
-.\.venv\Scripts\taxagent.exe profile --user demo
-.\.venv\Scripts\taxagent.exe eval --all
-.\.venv\Scripts\taxagent.exe rule-card list --jurisdiction quebec
-```
-
-| Command | Purpose |
-| --- | --- |
-| `ask` | Answer one tax question through the configured advisory endpoint. |
-| `chat` | Continue a local session and optionally save a local fact profile. |
-| `profile` | Inspect a saved local profile. |
-| `eval` | Run the scenario evaluation harness. |
-| `rule-card list` | Inspect available source-backed rule cards. |
+`taxagent calculate` reads a normalized `TaxReturnInput` JSON file and writes a calculation packet. A complete packet includes line values, provenance, source references, and federal/Quebec refund-or-balance fields. A blocked packet includes blockers and omits headline refund-or-balance amounts until the missing or unsupported facts are resolved.
 
 ## Privacy
 
-The CLI runs locally, but advisory prompts and relevant context are sent to the configured endpoint when you use `ask` or `chat`. Use a local endpoint if you want the advisory flow to stay on your machine.
+The local preparation workflow runs on loopback and has no model dependency for calculation. It does not call third-party services or transmit tax data to CRA, Revenu Quebec, or tax software accounts.
 
-Saved chat profiles are opt-in through `taxagent chat --user ...`. Omit `--user` to avoid profile persistence. Local profile files are plaintext, so use a non-sensitive user ID and store the checkout in a location you trust.
+The browser keeps data in memory by default. Exported JSON and review packets are plaintext files on your computer, so store them only in a location you trust.
 
-## Related branch
+## Documentation
 
-The local 2025 Quebec/federal preparation workspace is available on:
-
-```bash
-git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
-```
-
-That branch has its own README and browser quick start.
+- [User guide](docs/user_guide.md) explains the browser workflow.
+- [Coverage matrix](docs/coverage.md) lists supported forms, lines, blockers, and exclusions.
 
 ## License
 

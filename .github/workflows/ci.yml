@@ -1,0 +1,258 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m pip install ".[web,dev]"
+
+      - name: Test source checkout
+        run: |
+          python -m pytest -q -rs
+          taxagent doctor
+          taxagent rule-card list
+
+      - name: Build distribution
+        run: python -m build
+
+      - name: Test installed wheel outside checkout
+        shell: bash
+        run: |
+          WHEEL_PATH="$(python -c "import glob; print(glob.glob('dist/*.whl')[0])")"
+          TAXAGENT_WHEEL_TMP="$(mktemp -d)"
+          python -m venv "$TAXAGENT_WHEEL_TMP/venv"
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            PY="$TAXAGENT_WHEEL_TMP/venv/Scripts/python.exe"
+            TAXAGENT="$TAXAGENT_WHEEL_TMP/venv/Scripts/taxagent.exe"
+          else
+            PY="$TAXAGENT_WHEEL_TMP/venv/bin/python"
+            TAXAGENT="$TAXAGENT_WHEEL_TMP/venv/bin/taxagent"
+          fi
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install "${WHEEL_PATH}[web]"
+          pushd "$TAXAGENT_WHEEL_TMP"
+          "$TAXAGENT" doctor
+          "$TAXAGENT" rule-card list
+          "$PY" -c "import taxagent; assert taxagent.__version__ == '0.1.0'"
+          "$PY" -c "from importlib import resources; root=resources.files('taxagent'); assert root.joinpath('data','knowledge_base','quebec','qc_ramq_drug_premium_v1.json').is_file(); assert root.joinpath('web','static','local.css').is_file(); assert root.joinpath('web','static','local.js').is_file()"
+          "$PY" -c "from fastapi.testclient import TestClient; from taxagent.web import local_app; c=TestClient(local_app.app, base_url='http://127.0.0.1:8056'); h=c.get('/api/health').json(); assert h['engine_available']; assert h['assets']['html'] and h['assets']['css'] and h['assets']['js']; assert c.get('/static/local.css').status_code == 200"
+          cat > make_smoke_input.py <<'PY'
+          from decimal import Decimal
+          from pathlib import Path
+          from taxagent.returns import (
+              AdditionalReturnScreenInput,
+              DocumentInventory,
+              DrugInsuranceInput,
+              FederalTuitionInput,
+              InstalmentInput,
+              QuebecScheduleBInput,
+              QuebecTuitionInput,
+              RefundableCreditInput,
+              RespEapInput,
+              RrspInput,
+              ScholarshipInput,
+              SlipInput,
+              StudentLoanInterestInput,
+              TaxReturnInput,
+              TaxpayerFacts,
+          )
+
+          data = TaxReturnInput(
+              tax_year=2025,
+              province_dec31="QC",
+              taxpayer=TaxpayerFacts(
+                  full_year_canada_resident=True,
+                  full_year_quebec_resident=True,
+                  province_dec31="QC",
+                  age_dec31=30,
+                  marital_status="single",
+                  dependant_count=0,
+                  deceased_return=False,
+                  bankruptcy_return=False,
+                  has_self_employment=False,
+                  has_capital_gains=False,
+                  has_rental_income=False,
+                  has_foreign_income_or_tax=False,
+                  has_foreign_property_over_100k=False,
+                  has_crypto_transactions=False,
+                  has_pension_or_benefit_income=False,
+                  has_indian_act_exempt_income=False,
+                  has_disability_or_caregiver_claim=False,
+                  has_employment_expenses=False,
+                  has_medical_expenses=False,
+                  has_donations=False,
+                  has_childcare_expenses=False,
+                  has_moving_expenses=False,
+                  has_tips_or_other_employment_income=False,
+                  has_student_loan_interest=False,
+                  received_qpp_disability_pension=False,
+                  made_qpp_cpt30_election=False,
+                  was_full_time_student_more_than_13_weeks=False,
+              ),
+              slips=[
+                  SlipInput(
+                      slip_type="T4",
+                      document_id="t4-employer-a",
+                      issuer_id="employer-a",
+                      tax_year=2025,
+                      province_of_employment="QC",
+                      cpp_qpp_exempt=False,
+                      ei_exempt=False,
+                      ppip_exempt=False,
+                      confirmed=True,
+                      fields={
+                          "14": Decimal("50000.00"),
+                          "17": Decimal("2976.00"),
+                          "17A": Decimal("0.00"),
+                          "18": Decimal("655.00"),
+                          "20": Decimal("0.00"),
+                          "22": Decimal("6000.00"),
+                          "24": Decimal("50000.00"),
+                          "26": Decimal("50000.00"),
+                          "44": Decimal("0.00"),
+                          "52": Decimal("0.00"),
+                          "55": Decimal("247.00"),
+                      },
+                  ),
+                  SlipInput(
+                      slip_type="RL1",
+                      document_id="rl1-employer-a",
+                      issuer_id="employer-a",
+                      tax_year=2025,
+                      confirmed=True,
+                      fields={
+                          "A": Decimal("50000.00"),
+                          "B.A": Decimal("2976.00"),
+                          "B.B": Decimal("0.00"),
+                          "C": Decimal("655.00"),
+                          "D": Decimal("0.00"),
+                          "E": Decimal("5000.00"),
+                          "F": Decimal("0.00"),
+                          "G": Decimal("50000.00"),
+                          "H": Decimal("247.00"),
+                          "I": Decimal("50000.00"),
+                          "211": Decimal("0.00"),
+                      },
+                  ),
+              ],
+              inventory=DocumentInventory(
+                  income_sources_reviewed=True,
+                  deductions_reviewed=True,
+                  credits_reviewed=True,
+                  cra_records_reviewed=True,
+                  revenu_quebec_records_reviewed=True,
+                  no_income_sources=False,
+              ),
+              federal_tuition=FederalTuitionInput(
+                  has_current_tuition=False,
+                  has_prior_unused=False,
+                  wants_transfer=False,
+                  wants_canada_training_credit=False,
+              ),
+              quebec_tuition=QuebecTuitionInput(
+                  has_current_tuition=False,
+                  has_prior_unused=False,
+                  wants_transfer=False,
+              ),
+              rrsp=RrspInput(
+                  has_contributions=False,
+                  has_prior_unused_contributions=False,
+                  has_hbp_or_llp_activity=False,
+              ),
+              instalments=InstalmentInput(
+                  federal_reviewed=True,
+                  federal_paid=Decimal("0"),
+                  quebec_reviewed=True,
+                  quebec_paid=Decimal("0"),
+              ),
+              quebec_schedule_b=QuebecScheduleBInput(
+                  living_alone_reviewed=True,
+                  eligible_for_living_alone_amount=False,
+              ),
+              student_loan_interest=StudentLoanInterestInput(
+                  reviewed=True,
+                  qualifying_government_loans_confirmed=True,
+                  federal_current_year_paid=Decimal("0"),
+                  federal_unused_2020=Decimal("0"),
+                  federal_unused_2021=Decimal("0"),
+                  federal_unused_2022=Decimal("0"),
+                  federal_unused_2023=Decimal("0"),
+                  federal_unused_2024=Decimal("0"),
+                  federal_claim_amount=Decimal("0"),
+                  quebec_prior_unused=Decimal("0"),
+                  quebec_current_year_paid=Decimal("0"),
+                  quebec_claim_amount=Decimal("0"),
+              ),
+              scholarships=ScholarshipInput(reviewed=True, awards=[], part_time_programs=[]),
+              resp_eap=RespEapInput(
+                  reviewed=True,
+                  has_other_resp_payments=False,
+                  qesi_cumulative_amount_over_3600=False,
+                  payments=[],
+              ),
+              additional_return_screens=AdditionalReturnScreenInput(
+                  immigrated_or_emigrated_2025=False,
+                  quebec_trust_return=False,
+                  separate_post_death_return=False,
+                  quebec_enterprise_registration_or_annual_fee=False,
+              ),
+              drug_insurance=DrugInsuranceInput(
+                  reviewed=True,
+                  group_plan_months=set(range(1, 13)),
+                  group_plan_source="self",
+                  eligible_student_months=set(),
+                  other_exemption_applies=False,
+              ),
+              refundable_credits=RefundableCreditInput(
+                  work_premium_answers_reviewed=True,
+                  solidarity_answers_reviewed=True,
+                  canada_workers_benefit_answers_reviewed=True,
+                  rl19_advance_payments_reviewed=True,
+                  rl19_box_a=Decimal("0.00"),
+                  rl19_box_b=Decimal("0.00"),
+                  rl19_has_other_advance_boxes=False,
+                  cwb_incarcerated_90_days=False,
+                  cwb_foreign_officer_exempt=False,
+                  advanced_cwb_paid=Decimal("0.00"),
+                  advanced_cwb_disability_paid=Decimal("0.00"),
+                  work_premium_eligible_status=True,
+                  quebec_work_premium_full_time_student=False,
+                  transferred_schedule_s_amount=False,
+                  family_allowance_received_for_self=False,
+                  turned_18_before_december=True,
+                  designated_as_dependent_child=False,
+                  incarcerated_over_183_days=False,
+                  adapted_work_premium_eligible=False,
+                  work_premium_supplement_months=0,
+                  request_tax_shield=False,
+                  wants_solidarity_credit=False,
+              ),
+          )
+          Path("input.json").write_text(data.model_dump_json(indent=2), encoding="utf-8")
+          PY
+          "$PY" make_smoke_input.py
+          "$TAXAGENT" calculate input.json --output packet.json
+          "$PY" -c "import json; packet=json.load(open('packet.json', encoding='utf-8')); assert packet['status'] == 'complete'; assert packet['federal_refund_or_balance']; assert packet['quebec_refund_or_balance']"
+          popd

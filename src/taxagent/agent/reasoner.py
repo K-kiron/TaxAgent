@@ -8,7 +8,10 @@ knowledge, render, graders and scenarios are all framework-agnostic.
 
 from __future__ import annotations
 
-from ..config import Settings, settings as default_settings
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..config import Settings
 from ..knowledge import RuleCardStore, load_default_store
 from ..models import Recommendation, RuleCard, UserFact
 
@@ -98,10 +101,23 @@ def _output_type(mode: str):
     return PromptedOutput(Recommendation)
 
 
+def _valid_source_card_ids(ids: list[str], cards: list[RuleCard]) -> list[str]:
+    valid = {card.id for card in cards}
+    seen: set[str] = set()
+    out: list[str] = []
+    for card_id in ids:
+        if card_id in valid and card_id not in seen:
+            out.append(card_id)
+            seen.add(card_id)
+    return out
+
+
 class Reasoner:
     """Retrieve rule cards for a question, then produce a grounded Recommendation."""
 
-    def __init__(self, store: RuleCardStore | None = None, cfg: Settings = default_settings):
+    def __init__(self, store: RuleCardStore | None = None, cfg: "Settings | None" = None):
+        if cfg is None:
+            from ..config import settings as cfg
         self.store = store or load_default_store()
         self.cfg = cfg
         model = _OpenAIModel(
@@ -132,9 +148,7 @@ class Reasoner:
             message_history=message_history,
         )
         rec = result.output
-        # Grounding backstop: if the model forgot to cite, attach what it was given.
-        if not rec.source_card_ids and cards:
-            rec.source_card_ids = [c.id for c in cards]
+        rec.source_card_ids = _valid_source_card_ids(rec.source_card_ids, cards)
         return rec, cards, result
 
     def answer(

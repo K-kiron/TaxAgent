@@ -72,8 +72,8 @@ def test_profile_persists_across_sessions(tmp_path):
         a = TaxSession(default_tax_year=2025, user_id=uid, store=store, writer=writer)
         a.ask("I'm a Québec resident and I interned from January to June 2025.")
         a.close()  # flush async write
-        assert store.path(uid).exists()
-        saved = len(store.load(uid).facts)
+        assert store.path(uid, 2025).exists()
+        saved = len(store.load(uid, tax_year=2025).facts)
         assert saved >= 1
 
         # Session B (fresh object, same user): profile loads BEFORE any question.

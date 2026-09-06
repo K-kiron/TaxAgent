@@ -1,0 +1,61 @@
+"""Deterministic 2025 federal and Quebec tax-return calculation."""
+
+from .models import (
+    AdditionalReturnScreenInput,
+    CompletenessBlocker,
+    DocumentInventory,
+    DrugInsuranceInput,
+    FederalTuitionInput,
+    InstalmentInput,
+    LineValue,
+    QuebecScheduleBInput,
+    QuebecTuitionInput,
+    RefundableCreditInput,
+    RespEapInput,
+    RespEapPaymentInput,
+    RrspInput,
+    ScheduleResult,
+    ScholarshipAwardInput,
+    ScholarshipInput,
+    ScholarshipPartTimeProgramInput,
+    SlipInput,
+    StudentLoanInterestInput,
+    TaxReturnInput,
+    TaxReturnResult,
+    TaxpayerFacts,
+)
+from .gates import preflight
+from .federal_2025_qc import calculate_federal, calculate_qpp_schedule8
+from .quebec_2025 import calculate_qpp_schedule_u, calculate_quebec
+from .engine import calculate_return
+
+__all__ = [
+    "AdditionalReturnScreenInput",
+    "CompletenessBlocker",
+    "DocumentInventory",
+    "DrugInsuranceInput",
+    "FederalTuitionInput",
+    "InstalmentInput",
+    "LineValue",
+    "QuebecScheduleBInput",
+    "QuebecTuitionInput",
+    "RefundableCreditInput",
+    "RespEapInput",
+    "RespEapPaymentInput",
+    "RrspInput",
+    "ScheduleResult",
+    "ScholarshipAwardInput",
+    "ScholarshipInput",
+    "ScholarshipPartTimeProgramInput",
+    "SlipInput",
+    "StudentLoanInterestInput",
+    "TaxReturnInput",
+    "TaxReturnResult",
+    "TaxpayerFacts",
+    "preflight",
+    "calculate_federal",
+    "calculate_qpp_schedule8",
+    "calculate_qpp_schedule_u",
+    "calculate_quebec",
+    "calculate_return",
+]
