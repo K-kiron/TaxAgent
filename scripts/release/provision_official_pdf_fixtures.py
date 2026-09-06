@@ -40,7 +40,13 @@ def _check(path: Path, expected: dict) -> None:
         )
 
 
-def _copy_or_download(item: dict, official_dir: Path, source_corpus: Path | None, timeout: float) -> None:
+def _copy_or_download(
+    item: dict,
+    official_dir: Path,
+    source_corpus: Path | None,
+    timeout: float,
+    offline: bool = False,
+) -> None:
     official_dir.mkdir(parents=True, exist_ok=True)
     target = official_dir / item["name"]
     if target.exists():
@@ -51,6 +57,12 @@ def _copy_or_download(item: dict, official_dir: Path, source_corpus: Path | None
         shutil.copyfile(source, target)
         _check(target, item)
         return
+    if offline:
+        source_hint = source_corpus / "official" / item["name"] if source_corpus else None
+        hint = f" or provide --source-corpus containing {source_hint}" if source_hint else ""
+        raise RuntimeError(
+            f"offline official PDF provisioning is missing pinned fixture {target}{hint}"
+        )
     tmp = target.with_suffix(target.suffix + ".tmp")
     try:
         with urllib.request.urlopen(item["url"], timeout=timeout) as response:
@@ -268,12 +280,18 @@ def _verify_generated_required(manifest: dict, fixture_root: Path, source_corpus
         _check(target, item)
 
 
-def provision(manifest_path: Path, fixture_root: Path, source_corpus: Path | None, timeout: float) -> None:
+def provision(
+    manifest_path: Path,
+    fixture_root: Path,
+    source_corpus: Path | None,
+    timeout: float,
+    offline: bool = False,
+) -> None:
     manifest = _read_manifest(manifest_path)
     official_dir = fixture_root / "official"
     release_dir = fixture_root / "generated" / "release"
     for item in manifest["official"]:
-        _copy_or_download(item, official_dir, source_corpus, timeout)
+        _copy_or_download(item, official_dir, source_corpus, timeout, offline)
     _verify_generated_required(manifest, fixture_root, source_corpus)
     for entry in manifest["annual_flow"]:
         if entry["source"] == "synthetic_text":
@@ -296,8 +314,13 @@ def main(argv: list[str] | None = None) -> int:
         help="Optional local official-pdf-acceptance directory to copy from before downloading.",
     )
     parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Require cached or --source-corpus official PDFs and never download missing originals.",
+    )
     args = parser.parse_args(argv)
-    provision(args.manifest, args.fixture_root, args.source_corpus, args.timeout)
+    provision(args.manifest, args.fixture_root, args.source_corpus, args.timeout, args.offline)
     return 0
 
 

@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from taxagent.intake import import_pdf_batch
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "pdf"
-OFFICIAL_DIR = FIXTURE_DIR / "official"
+SYNTHETIC_DIR = FIXTURE_DIR / "synthetic"
 
 
 def _text_pdf(lines: list[str]) -> bytes:
@@ -76,18 +76,18 @@ def _combine_pdfs(*pdfs: bytes) -> bytes:
     return buffer.getvalue()
 
 
-def _official_fixture(folder: str, name: str) -> bytes:
-    path = OFFICIAL_DIR / folder / name
+def _synthetic_fixture(folder: str, name: str) -> bytes:
+    path = SYNTHETIC_DIR / folder / name
     if not path.exists():
         raise AssertionError(
-            "official PDF acceptance fixture is unavailable; run "
-            "python scripts/release/provision_official_pdf_fixtures.py"
+            "synthetic PDF fixture is unavailable; run "
+            "python scripts/release/provision_synthetic_pdf_fixtures.py"
         )
     return path.read_bytes()
 
 
-def _filled_official_form(name: str, values: dict[str, str]) -> bytes:
-    reader = PdfReader(BytesIO(_official_fixture("official", name)))
+def _filled_synthetic_form(name: str, values: dict[str, str]) -> bytes:
+    reader = PdfReader(BytesIO(_synthetic_fixture("acroforms", name)))
     if reader.is_encrypted:
         assert reader.decrypt("")
     writer = PdfWriter(clone_from=reader)
@@ -95,6 +95,17 @@ def _filled_official_form(name: str, values: dict[str, str]) -> bytes:
     output = BytesIO()
     writer.write(output)
     return output.getvalue()
+
+
+def _empty_user_encrypted_pdf(pdf_bytes: bytes) -> bytes:
+    reader = PdfReader(BytesIO(pdf_bytes))
+    writer = PdfWriter(clone_from=reader)
+    writer.encrypt("", "owner-password")
+    output = BytesIO()
+    writer.write(output)
+    encrypted = output.getvalue()
+    assert PdfReader(BytesIO(encrypted)).is_encrypted
+    return encrypted
 
 
 def test_import_pdf_batch_accepts_strongly_anchored_t4_text_pdf():
@@ -491,7 +502,7 @@ def test_import_pdf_batch_preserves_annual_engine_raw_box_codes():
     assert result.candidates[1].fields["30"].value == "400.00"
 
 
-def test_import_pdf_batch_reads_amount_before_official_box_anchor():
+def test_import_pdf_batch_reads_amount_before_source_box_anchor():
     pdf_bytes = _spatial_pdf(
         [
             (72, 750, "T4 Statement of Remuneration Paid"),
@@ -503,7 +514,7 @@ def test_import_pdf_batch_reads_amount_before_official_box_anchor():
         ]
     )
 
-    result = import_pdf_batch([("official-cell-t4.pdf", pdf_bytes)], enable_ocr=False)
+    result = import_pdf_batch([("synthetic-cell-t4.pdf", pdf_bytes)], enable_ocr=False)
 
     candidate = result.candidates[0]
     assert candidate.decision == "accepted_auto"
@@ -639,23 +650,24 @@ def test_import_pdf_batch_requires_t4_income_for_auto_accept():
 @pytest.mark.parametrize(
     "name",
     [
-        "cra-t4-fill-2025.pdf",
-        "cra-t4-fill-2024.pdf",
-        "cra-t2202-fill-2025.pdf",
-        "cra-t2202-fill-2024.pdf",
-        "rq-rl1-fill-2025.pdf",
-        "rq-rl1-fill-2024.pdf",
-        "rq-rl8-fill-2022.pdf",
+        "synthetic-t4-2025.pdf",
+        "synthetic-t4-2024.pdf",
+        "synthetic-t2202-2025.pdf",
+        "synthetic-t2202-2024.pdf",
+        "synthetic-rl1-2025.pdf",
+        "synthetic-rl1-2024.pdf",
+        "synthetic-rl8-2022.pdf",
     ],
 )
-def test_official_permission_encrypted_forms_are_readable(name: str):
-    result = import_pdf_batch([(name, _official_fixture("official", name))], enable_ocr=False)
+def test_synthetic_permission_encrypted_forms_are_readable(name: str):
+    pdf = _empty_user_encrypted_pdf(_synthetic_fixture("acroforms", name))
+    result = import_pdf_batch([(name, pdf)], enable_ocr=False)
 
     assert result.documents[0].status in {"processed", "unsupported"}
     assert result.documents[0].page_count > 0
 
 
-def test_filled_official_t4_acroform_maps_widgets_and_dedupes_recipient_copy():
+def test_filled_synthetic_t4_acroform_maps_widgets_and_dedupes_recipient_copy():
     values = {
         "Slip1EmployersName[0]": "EXAMPLE ROBOTICS INC.",
         "Slip1Year[0]": "2025",
@@ -667,7 +679,7 @@ def test_filled_official_t4_acroform_maps_widgets_and_dedupes_recipient_copy():
         "Slip1Box22[0].2": "5000.00",
     }
     result = import_pdf_batch(
-        [("official-t4.pdf", _filled_official_form("cra-t4-fill-2025.pdf", values))],
+        [("synthetic-t4.pdf", _filled_synthetic_form("synthetic-t4-2025.pdf", values))],
         enable_ocr=False,
     )
 
@@ -688,12 +700,12 @@ def test_filled_official_t4_acroform_maps_widgets_and_dedupes_recipient_copy():
     ) == 1
 
 
-def test_filled_official_rl1_acroform_maps_widgets_and_issuer():
-    pdf = _filled_official_form(
-        "rq-rl1-fill-2025.pdf",
+def test_filled_synthetic_rl1_acroform_maps_widgets_and_issuer():
+    pdf = _filled_synthetic_form(
+        "synthetic-rl1-2025.pdf",
         {"nom2": "EXAMPLE ROBOTICS INC.", "caseA": "48000.00", "caseE": "5000.00"},
     )
-    candidate = import_pdf_batch([("official-rl1.pdf", pdf)], enable_ocr=False).candidates[0]
+    candidate = import_pdf_batch([("synthetic-rl1.pdf", pdf)], enable_ocr=False).candidates[0]
 
     assert candidate.decision == "accepted_auto"
     assert candidate.issuer_id == "EXAMPLE ROBOTICS INC."
@@ -702,17 +714,17 @@ def test_filled_official_rl1_acroform_maps_widgets_and_issuer():
     assert candidate.fields["E"].value == "5000.00"
 
 
-def test_filled_official_student_forms_map_t2202_and_rl8_fields():
-    t2202 = _filled_official_form(
-        "cra-t2202-fill-2025.pdf",
+def test_filled_synthetic_student_forms_map_t2202_and_rl8_fields():
+    t2202 = _filled_synthetic_form(
+        "synthetic-t2202-2025.pdf",
         {
             "Slip1Year[0]": "2025",
             "Part1_Name_Address[0]": "EXAMPLE COLLEGE",
             "Totals_Box26_row5[0]": "7000.00",
         },
     )
-    rl8 = _filled_official_form(
-        "rq-rl8-fill-2022.pdf",
+    rl8 = _filled_synthetic_form(
+        "synthetic-rl8-2022.pdf",
         {"an": "2025", "nom2": "EXAMPLE COLLEGE", "caseA": "3000.00", "caseB1": "7000.00"},
     )
     result = import_pdf_batch([("t2202.pdf", t2202), ("rl8.pdf", rl8)], enable_ocr=False)
@@ -731,21 +743,21 @@ def test_filled_official_student_forms_map_t2202_and_rl8_fields():
     }
 
 
-def test_flattened_official_layout_uses_geometric_cells_and_dedupes_t4_copy():
-    t4 = _official_fixture("generated", "cra-t4-2025-official-layout-filled-flattened.pdf")
-    rl1 = _official_fixture("generated", "rq-rl1-2025-official-layout-filled-flattened.pdf")
+def test_synthetic_release_text_pdfs_import_expected_slips_and_fields():
+    t4 = _synthetic_fixture("generated/release", "release-synthetic-t4-2025.pdf")
+    rl1 = _synthetic_fixture("generated/release", "release-synthetic-rl1-2025.pdf")
     result = import_pdf_batch([("t4.pdf", t4), ("rl1.pdf", rl1)])
     accepted = [
         candidate for candidate in result.candidates if candidate.decision == "accepted_auto"
     ]
 
     assert [(candidate.slip_type, candidate.issuer_id) for candidate in accepted] == [
-        ("T4", "EXAMPLE ROBOTICS INC."),
-        ("RL-1", "EXAMPLE ROBOTICS INC."),
+        ("T4", "EXAMPLE ROBOTICS INC"),
+        ("RL-1", "EXAMPLE ROBOTICS INC"),
     ]
-    assert accepted[0].fields["14"].value == "48000.00"
-    assert accepted[0].fields["22"].value == "5000.00"
-    assert accepted[1].fields["A"].value == "48000.00"
+    assert accepted[0].fields["14"].value == "50000.00"
+    assert accepted[0].fields["22"].value == "6000.00"
+    assert accepted[1].fields["A"].value == "50000.00"
     assert accepted[1].fields["E"].value == "5000.00"
     assert all(
         field.bbox and field.page == 1
@@ -754,8 +766,8 @@ def test_flattened_official_layout_uses_geometric_cells_and_dedupes_t4_copy():
     )
 
 
-def test_official_t4_instruction_page_is_not_a_candidate():
-    pdf = _official_fixture("official", "cra-t4-print-2025.pdf")
+def test_synthetic_t4_instruction_page_is_not_a_candidate():
+    pdf = _synthetic_fixture("acroforms", "synthetic-t4-instructions-2025.pdf")
     result = import_pdf_batch([("t4.pdf", pdf)], enable_ocr=False)
 
     assert all(candidate.tax_year != 2020 for candidate in result.candidates)

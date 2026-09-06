@@ -18,7 +18,7 @@ LOOPBACK_BASE_URL = "http://127.0.0.1:8056"
 def _read_manifest(fixture_root: Path) -> dict[str, Any]:
     path = fixture_root / "manifest.json"
     if not path.is_file():
-        raise AssertionError(f"official fixture manifest is missing: {path}")
+        raise AssertionError(f"synthetic fixture manifest is missing: {path}")
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -32,31 +32,24 @@ def _digest(path: Path) -> str:
 
 def _check_fixture(path: Path, expected: dict[str, Any]) -> None:
     if not path.is_file():
-        raise AssertionError(f"official fixture is missing: {path}")
+        raise AssertionError(f"synthetic fixture is missing: {path}")
     size = path.stat().st_size
     digest = _digest(path)
     if size != expected["bytes"] or digest != expected["sha256"]:
         raise AssertionError(
-            f"official fixture changed: {path} got {size} bytes {digest}, "
+            f"synthetic fixture changed: {path} got {size} bytes {digest}, "
             f"expected {expected['bytes']} bytes {expected['sha256']}"
         )
 
 
-def _assert_official_fixtures(fixture_root: Path, manifest: dict[str, Any]) -> None:
-    official_dir = fixture_root / "official"
-    for item in manifest["official"]:
-        _check_fixture(official_dir / item["name"], item)
+def _assert_synthetic_fixtures(fixture_root: Path, manifest: dict[str, Any]) -> None:
+    acroform_dir = fixture_root / "acroforms"
+    for item in manifest["acroforms"]:
+        _check_fixture(acroform_dir / item["name"], item)
 
-    generated_dir = fixture_root / "generated"
-    for item in manifest.get("generated_required", []):
-        _check_fixture(generated_dir / item["name"], item)
-
-    release_dir = generated_dir / "release"
-    for entry in manifest["annual_flow"]:
-        for key in ("t4", "rl1"):
-            path = release_dir / entry[key]
-            if not path.is_file():
-                raise AssertionError(f"release fixture is missing: {path}")
+    release_dir = fixture_root / "generated" / "release"
+    for item in manifest["release"]:
+        _check_fixture(release_dir / item["name"], item)
 
 
 
@@ -527,7 +520,7 @@ def _assert_scan_import(client, scan_fixture: Path | None) -> None:
 def run_acceptance(repo_root: Path | None, fixture_root: Path, scan_fixture: Path | None) -> None:
     _assert_installed_package(repo_root)
     manifest = _read_manifest(fixture_root)
-    _assert_official_fixtures(fixture_root, manifest)
+    _assert_synthetic_fixtures(fixture_root, manifest)
     client = _client()
     _assert_rapidocr_model_artifacts()
     _assert_scan_import(client, scan_fixture)

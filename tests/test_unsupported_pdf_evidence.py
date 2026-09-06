@@ -11,8 +11,8 @@ from taxagent.intake.pdf import FormField, _canonical_form_field
 from taxagent.web import local_app
 
 
-RELEASE_DIR = Path(__file__).parent / "fixtures" / "pdf" / "official" / "generated" / "release"
-OFFICIAL_DIR = Path(__file__).parent / "fixtures" / "pdf" / "official" / "official"
+RELEASE_DIR = Path(__file__).parent / "fixtures" / "pdf" / "synthetic" / "generated" / "release"
+SYNTHETIC_DIR = Path(__file__).parent / "fixtures" / "pdf" / "synthetic" / "acroforms"
 
 
 def _client() -> TestClient:
@@ -23,12 +23,12 @@ def _release_pdf(name: str) -> bytes:
     return (RELEASE_DIR / name).read_bytes()
 
 
-def _official_pdf(name: str) -> bytes:
-    return (OFFICIAL_DIR / name).read_bytes()
+def _synthetic_pdf(name: str) -> bytes:
+    return (SYNTHETIC_DIR / name).read_bytes()
 
 
-def _filled_official_rl1_2024_with_case_s() -> bytes:
-    reader = PdfReader(BytesIO(_official_pdf("rq-rl1-fill-2024.pdf")))
+def _filled_synthetic_rl1_2024_with_case_s() -> bytes:
+    reader = PdfReader(BytesIO(_synthetic_pdf("synthetic-rl1-2024.pdf")))
     if reader.is_encrypted:
         assert reader.decrypt("")
     writer = PdfWriter(clone_from=reader)
@@ -243,7 +243,7 @@ def _apply_complete_2024_non_pdf_facts(data: dict) -> None:
     )
 
 
-def test_public_calculate_blocks_positive_unsupported_official_rl1_widget() -> None:
+def test_public_calculate_blocks_positive_unsupported_synthetic_rl1_widget() -> None:
     client = _client()
     imported = client.post(
         "/api/import-pdfs",
@@ -251,16 +251,16 @@ def test_public_calculate_blocks_positive_unsupported_official_rl1_widget() -> N
             (
                 "files",
                 (
-                    "release-official-t4-2024.pdf",
-                    _release_pdf("release-official-t4-2024.pdf"),
+                    "release-synthetic-t4-2024.pdf",
+                    _release_pdf("release-synthetic-t4-2024.pdf"),
                     "application/pdf",
                 ),
             ),
             (
                 "files",
                 (
-                    "official-rl1-2024-case-s-positive.pdf",
-                    _filled_official_rl1_2024_with_case_s(),
+                    "synthetic-rl1-2024-case-s-positive.pdf",
+                    _filled_synthetic_rl1_2024_with_case_s(),
                     "application/pdf",
                 ),
             ),
@@ -297,7 +297,7 @@ def test_public_calculate_blocks_positive_unsupported_official_rl1_widget() -> N
     assert rebuilt_rl1["fields"]["S"] == "1000.00"
 
 
-def test_official_form_money_widgets_are_preserved_without_guessing_non_money_fields() -> None:
+def test_source_form_money_widgets_are_preserved_without_guessing_non_money_fields() -> None:
     source_text = "T4A Statement of Pension Retirement Annuity and Other Income"
     assert (
         _canonical_form_field(

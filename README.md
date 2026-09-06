@@ -99,6 +99,29 @@ The preparation app runs on loopback and performs PDF/OCR work locally. The dete
 
 The browser keeps active data in memory by default. Reset clears the current in-memory workspace, selected PDFs, review choices, and results. Saved JSON and review packets are plaintext files on your computer.
 
+## Release PDF Fixtures
+
+Ordinary CI uses project-authored synthetic PDF fixtures. Generate and verify them with:
+
+```bash
+python scripts/release/provision_synthetic_pdf_fixtures.py
+```
+
+The installed-wheel acceptance script is intended for a clean virtual environment after installing the built wheel. It rejects imports from the source checkout:
+
+```bash
+python tests/release/installed_pdf_acceptance.py --repo-root . --fixtures tests/fixtures/pdf/synthetic --scan-fixture tests/fixtures/pdf/t4_scan_2025.pdf
+```
+
+These synthetic fixtures cover digital text, AcroForm widgets, OCR, packaging, and the six-year batch return workflow. They are not government forms and do not prove official-layout compatibility.
+
+Official PDF compatibility is a separate local opt-in check for testers who already have the government PDF originals. The originals are not bundled in this repository and CI does not download them. Place tester-provided originals under `tests/fixtures/pdf/official/official` or pass a source corpus, then run:
+
+```bash
+python scripts/release/provision_official_pdf_fixtures.py --offline
+python tests/release/local_official_pdf_acceptance.py
+```
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

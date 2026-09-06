@@ -11,21 +11,21 @@ from taxagent.intake import import_pdf_batch
 from taxagent.web import local_app
 
 
-FIXTURE_DIR = Path(__file__).parent / "fixtures" / "pdf" / "official" / "official"
+FIXTURE_DIR = Path(__file__).parent / "fixtures" / "pdf" / "synthetic" / "acroforms"
 
 
-def _official_fixture(name: str) -> bytes:
+def _synthetic_fixture(name: str) -> bytes:
     path = FIXTURE_DIR / name
     if not path.exists():
         raise AssertionError(
-            "official PDF acceptance fixture is unavailable; run "
-            "python scripts/release/provision_official_pdf_fixtures.py"
+            "synthetic PDF fixture is unavailable; run "
+            "python scripts/release/provision_synthetic_pdf_fixtures.py"
         )
     return path.read_bytes()
 
 
-def _filled_official_form(name: str, values: dict[str, object]) -> bytes:
-    reader = PdfReader(BytesIO(_official_fixture(name)))
+def _filled_synthetic_form(name: str, values: dict[str, object]) -> bytes:
+    reader = PdfReader(BytesIO(_synthetic_fixture(name)))
     if reader.is_encrypted:
         assert reader.decrypt("")
     writer = PdfWriter(clone_from=reader)
@@ -100,11 +100,11 @@ def _t2202_values(*, include_months: bool = True) -> dict[str, object]:
     return values
 
 
-def test_official_acroforms_preserve_t4_metadata_and_t2202_explicit_months():
+def test_synthetic_acroforms_preserve_t4_metadata_and_t2202_explicit_months():
     result = import_pdf_batch(
         [
-            ("t4.pdf", _filled_official_form("cra-t4-fill-2025.pdf", _t4_values())),
-            ("t2202.pdf", _filled_official_form("cra-t2202-fill-2025.pdf", _t2202_values())),
+            ("t4.pdf", _filled_synthetic_form("synthetic-t4-2025.pdf", _t4_values())),
+            ("t2202.pdf", _filled_synthetic_form("synthetic-t2202-2025.pdf", _t2202_values())),
         ],
         enable_ocr=False,
     )
@@ -145,12 +145,12 @@ def test_public_import_corrections_for_missing_metadata_survive_reconcile_and_ca
         files=[
             (
                 "files",
-                ("t4.pdf", _filled_official_form("cra-t4-fill-2025.pdf", _t4_values(include_source_metadata=False)), "application/pdf"),
+                ("t4.pdf", _filled_synthetic_form("synthetic-t4-2025.pdf", _t4_values(include_source_metadata=False)), "application/pdf"),
             ),
-            ("files", ("rl1.pdf", _filled_official_form("rq-rl1-fill-2025.pdf", _rl1_values()), "application/pdf")),
+            ("files", ("rl1.pdf", _filled_synthetic_form("synthetic-rl1-2025.pdf", _rl1_values()), "application/pdf")),
             (
                 "files",
-                ("t2202.pdf", _filled_official_form("cra-t2202-fill-2025.pdf", _t2202_values(include_months=False)), "application/pdf"),
+                ("t2202.pdf", _filled_synthetic_form("synthetic-t2202-2025.pdf", _t2202_values(include_months=False)), "application/pdf"),
             ),
         ],
     )
@@ -190,12 +190,12 @@ def test_public_import_corrections_for_missing_metadata_survive_reconcile_and_ca
                 "ei_exempt": False,
                 "ppip_exempt": False,
             },
-            "reason": "Reviewed against the official T4 source widgets.",
+            "reason": "Reviewed against the synthetic T4 source widgets.",
         },
         {
             "candidate_id": t2202_id,
             "fields": {"24": "0", "25": "8"},
-            "reason": "Reviewed against the official T2202 enrolment boxes.",
+            "reason": "Reviewed against the synthetic T2202 enrolment boxes.",
         },
     ]
     reconciled = client.post(

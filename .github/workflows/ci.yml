@@ -28,8 +28,8 @@ jobs:
           python -m pip install --upgrade pip build
           python -m pip install ".[web,dev]"
 
-      - name: Provision official PDF fixtures
-        run: python scripts/release/provision_official_pdf_fixtures.py
+      - name: Provision synthetic PDF fixtures
+        run: python scripts/release/provision_synthetic_pdf_fixtures.py
 
       - name: Test source checkout
         run: |
@@ -58,7 +58,7 @@ jobs:
           pushd "$TAXAGENT_WHEEL_TMP"
           "$TAXAGENT" doctor
           "$TAXAGENT" rule-card list
-          "$PY" "$GITHUB_WORKSPACE/tests/release/installed_pdf_acceptance.py" --repo-root "$GITHUB_WORKSPACE" --fixtures "$GITHUB_WORKSPACE/tests/fixtures/pdf/official" --scan-fixture "$GITHUB_WORKSPACE/tests/fixtures/pdf/t4_scan_2025.pdf"
+          "$PY" "$GITHUB_WORKSPACE/tests/release/installed_pdf_acceptance.py" --repo-root "$GITHUB_WORKSPACE" --fixtures "$GITHUB_WORKSPACE/tests/fixtures/pdf/synthetic" --scan-fixture "$GITHUB_WORKSPACE/tests/fixtures/pdf/t4_scan_2025.pdf"
           "$PY" -c "import taxagent; assert taxagent.__version__ == '0.1.0'"
           "$PY" -c "from importlib import resources; root=resources.files('taxagent'); assert root.joinpath('data','knowledge_base','quebec','qc_ramq_drug_premium_v1.json').is_file(); assert root.joinpath('web','static','local.css').is_file(); assert root.joinpath('web','static','local.js').is_file()"
           "$PY" -c "from fastapi.testclient import TestClient; from taxagent.web import local_app; c=TestClient(local_app.app, base_url='http://127.0.0.1:8056'); h=c.get('/api/health').json(); assert h['engine_available']; assert h['assets']['html'] and h['assets']['css'] and h['assets']['js']; assert c.get('/static/local.css').status_code == 200"
