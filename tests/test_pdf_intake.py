@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 from types import SimpleNamespace
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import pytest
 from pypdf import PdfReader, PdfWriter
 from reportlab.lib.utils import ImageReader
@@ -52,9 +52,15 @@ def _spatial_pages(pages: list[list[tuple[float, float, str]]]) -> bytes:
 def _mixed_text_raster_pdf() -> bytes:
     image = Image.new("RGB", (1200, 400), "white")
     draw = ImageDraw.Draw(image)
-    draw.text((20, 50), "Tax year 2024", fill="black")
-    draw.text((20, 100), "Employer name Raster Employer", fill="black")
-    draw.text((20, 180), "Box 14 Employment income 45,000.00", fill="black")
+    font = ImageFont.load_default(size=32)
+    draw.text((20, 50), "Tax year 2024", fill="black", font=font)
+    draw.text((20, 110), "Employer name Raster Employer", fill="black", font=font)
+    draw.text(
+        (20, 210),
+        "Box 14 Employment income 45,000.00",
+        fill="black",
+        font=font,
+    )
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(612, 792))
@@ -611,7 +617,7 @@ def test_import_pdf_batch_ocr_reads_mixed_text_heading_and_raster_body():
 
     assert result.candidates, result.model_dump(mode="json")
     candidate = result.candidates[0]
-    assert candidate.decision == "accepted_auto"
+    assert candidate.decision == "accepted_auto", candidate.model_dump(mode="json")
     assert candidate.issuer_id == "Raster Employer"
     assert candidate.fields["14"].method == "ocr_rapidocr"
     assert candidate.fields["14"].value == "45000.00"
