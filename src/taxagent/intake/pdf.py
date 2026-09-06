@@ -8,6 +8,7 @@ from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 from io import BytesIO
 import re
+import sys
 from threading import Lock
 from time import monotonic
 
@@ -143,7 +144,13 @@ def _run_local_ocr(bitmap: object) -> tuple[list[str], list[float], list[object]
         if _OCR_ENGINE is None:
             from rapidocr import RapidOCR
 
-            _OCR_ENGINE = RapidOCR()
+            params = {}
+            if sys.platform.startswith("linux"):
+                params = {
+                    "EngineConfig.onnxruntime.intra_op_num_threads": 1,
+                    "EngineConfig.onnxruntime.inter_op_num_threads": 1,
+                }
+            _OCR_ENGINE = RapidOCR(params=params)
         result = _OCR_ENGINE(bitmap)
         texts = [str(item) for item in (getattr(result, "txts", None) or [])]
         scores = [float(item) for item in (getattr(result, "scores", None) or [])]

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from io import BytesIO
 from pathlib import Path
+import sys
+from types import SimpleNamespace
 
 from PIL import Image, ImageDraw
 import pytest
@@ -10,6 +12,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
 from taxagent.intake import import_pdf_batch
+import taxagent.intake.pdf as pdf_intake
 
 FIXTURE_DIR = Path(__file__).parent / "fixtures" / "pdf"
 SYNTHETIC_DIR = FIXTURE_DIR / "synthetic"
@@ -302,6 +305,7 @@ def test_import_pdf_batch_reads_scanned_pdf_with_local_rapidocr():
 
     result = import_pdf_batch([("scan-t4.pdf", pdf_bytes)])
 
+    assert result.candidates, result.model_dump(mode="json")
     candidate = result.candidates[0]
     assert candidate.slip_type == "T4"
     assert candidate.tax_year == 2025
@@ -389,10 +393,11 @@ def test_import_pdf_batch_splits_mixed_scanned_and_text_pages():
 
     result = import_pdf_batch([("mixed.pdf", mixed)])
 
-    assert [(candidate.slip_type, candidate.tax_year) for candidate in result.candidates] == [
+    observed = [(candidate.slip_type, candidate.tax_year) for candidate in result.candidates]
+    assert observed == [
         ("T4", 2025),
         ("T5", 2025),
-    ]
+    ], result.model_dump(mode="json")
     assert result.candidates[0].fields["14"].method == "ocr_rapidocr"
     assert result.candidates[1].fields["13"].method == "digital_text"
 
@@ -604,11 +609,33 @@ def test_import_pdf_batch_merges_continuation_page_fields():
 def test_import_pdf_batch_ocr_reads_mixed_text_heading_and_raster_body():
     result = import_pdf_batch([("mixed-heading-scan.pdf", _mixed_text_raster_pdf())])
 
+    assert result.candidates, result.model_dump(mode="json")
     candidate = result.candidates[0]
     assert candidate.decision == "accepted_auto"
     assert candidate.issuer_id == "Raster Employer"
     assert candidate.fields["14"].method == "ocr_rapidocr"
     assert candidate.fields["14"].value == "45000.00"
+
+
+def test_local_rapidocr_limits_onnx_worker_threads(monkeypatch):
+    configured: dict[str, object] = {}
+
+    class FakeRapidOCR:
+        def __init__(self, *, params: dict[str, object]):
+            configured.update(params)
+
+        def __call__(self, _bitmap: object) -> SimpleNamespace:
+            return SimpleNamespace(txts=(), scores=(), boxes=None)
+
+    monkeypatch.setitem(sys.modules, "rapidocr", SimpleNamespace(RapidOCR=FakeRapidOCR))
+    monkeypatch.setattr(pdf_intake, "_OCR_ENGINE", None)
+    monkeypatch.setattr(pdf_intake.sys, "platform", "linux")
+
+    assert pdf_intake._run_local_ocr(object()) == ([], [], [])
+    assert configured == {
+        "EngineConfig.onnxruntime.intra_op_num_threads": 1,
+        "EngineConfig.onnxruntime.inter_op_num_threads": 1,
+    }
 
 
 def test_import_pdf_batch_marks_explicit_unsupported_year():
