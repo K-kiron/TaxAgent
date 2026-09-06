@@ -1,4 +1,4 @@
-"""Typed public contract for deterministic 2025 Quebec returns."""
+"""Typed public contract for deterministic Quebec returns."""
 
 from __future__ import annotations
 
@@ -87,7 +87,12 @@ class SlipInput(StrictModel):
     cpp_qpp_exempt: StrictBool | None = None
     ei_exempt: StrictBool | None = None
     ppip_exempt: StrictBool | None = None
-    rrsp_period: Literal["march_to_december_2025", "first_60_days_2026"] | None = None
+    rrsp_period: Literal[
+        "march_to_december",
+        "first_60_days",
+        "march_to_december_2025",
+        "first_60_days_2026",
+    ] | None = None
     rl1_box_o_allocations: dict[str, NonNegativeMoney] | None = None
     confirmed: StrictBool | None = None
     fields: dict[str, Decimal | str | bool] = Field(default_factory=dict)
@@ -158,6 +163,7 @@ class StudentLoanInterestInput(StrictModel):
     federal_unused_2022: NonNegativeMoney | None = None
     federal_unused_2023: NonNegativeMoney | None = None
     federal_unused_2024: NonNegativeMoney | None = None
+    federal_unused_by_origin_year: dict[int, NonNegativeMoney] | None = None
     federal_claim_amount: NonNegativeMoney | None = None
     quebec_prior_unused: NonNegativeMoney | None = None
     quebec_current_year_paid: NonNegativeMoney | None = None
@@ -211,10 +217,22 @@ class RespEapInput(StrictModel):
     payments: list[RespEapPaymentInput] | None = None
 
 
+class PandemicRepaymentInput(StrictModel):
+    """Repayment evidence and the taxpayer's annual federal allocation election."""
+
+    reviewed: StrictBool | None = None
+    repayment_year: StrictInt | None = None
+    benefit_receipt_year: StrictInt | None = None
+    eligible_repayment_amount: NonNegativeMoney | None = None
+    federal_claim_allocations_by_tax_year: dict[int, NonNegativeMoney] | None = None
+    quebec_claim_amount: NonNegativeMoney | None = None
+
+
 class AdditionalReturnScreenInput(StrictModel):
     """Filing situations printed on the T1 or TP-1 outside the supported profile."""
 
     immigrated_or_emigrated_2025: StrictBool | None = None
+    immigrated_or_emigrated_in_tax_year: StrictBool | None = None
     quebec_trust_return: StrictBool | None = None
     separate_post_death_return: StrictBool | None = None
     quebec_enterprise_registration_or_annual_fee: StrictBool | None = None
@@ -258,7 +276,7 @@ class RefundableCreditInput(StrictModel):
 
 
 class TaxReturnInput(StrictModel):
-    schema_version: Literal["2025-qc-v1"] = "2025-qc-v1"
+    schema_version: Literal["2025-qc-v1", "qc-return-v2"] = "2025-qc-v1"
     tax_year: StrictInt
     province_dec31: str
     taxpayer: TaxpayerFacts
@@ -272,9 +290,40 @@ class TaxReturnInput(StrictModel):
     student_loan_interest: StudentLoanInterestInput
     scholarships: ScholarshipInput
     resp_eap: RespEapInput
+    pandemic_repayment: PandemicRepaymentInput = Field(default_factory=PandemicRepaymentInput)
     additional_return_screens: AdditionalReturnScreenInput
     drug_insurance: DrugInsuranceInput
     refundable_credits: RefundableCreditInput
+
+    @model_validator(mode="after")
+    def validate_schema_year(self) -> "TaxReturnInput":
+        if self.schema_version == "qc-return-v2" and self.tax_year not in range(2020, 2026):
+            raise ValueError("qc-return-v2 supports tax years 2020 through 2025")
+        if self.schema_version == "qc-return-v2" and self.tax_year == 2025:
+            screens = self.additional_return_screens
+            if screens.immigrated_or_emigrated_in_tax_year is not None:
+                screens.immigrated_or_emigrated_2025 = screens.immigrated_or_emigrated_in_tax_year
+            origins = self.student_loan_interest.federal_unused_by_origin_year
+            if origins is not None:
+                invalid_origins = sorted(
+                    year for year in origins if year not in range(2020, 2025)
+                )
+                if invalid_origins:
+                    raise ValueError(
+                        f"2025 federal student-loan origin years must be 2020 through 2024: {invalid_origins}"
+                    )
+            for year in range(2020, 2025):
+                field = f"federal_unused_{year}"
+                if origins is not None:
+                    setattr(self.student_loan_interest, field, origins.get(year))
+            period_migration = {
+                "march_to_december": "march_to_december_2025",
+                "first_60_days": "first_60_days_2026",
+            }
+            for slip in self.slips:
+                if slip.rrsp_period in period_migration:
+                    slip.rrsp_period = period_migration[slip.rrsp_period]
+        return self
 
 
 class CompletenessBlocker(StrictModel):
@@ -307,6 +356,15 @@ class ScheduleResult(StrictModel):
         return not self.blockers
 
 
+class CarryforwardAmount(StrictModel):
+    """A calculated closing balance, kept distinct from an assessed opening balance."""
+
+    amount: NonNegativeMoney
+    basis: Literal["proposed_closing"] = "proposed_closing"
+    source_line_ids: list[str] = Field(default_factory=list)
+    explanation: str
+
+
 class TaxReturnResult(StrictModel):
     status: Literal["complete", "blocked"]
     coverage_profile_id: str
@@ -317,6 +375,7 @@ class TaxReturnResult(StrictModel):
     federal_refund_or_balance: Decimal | None = None
     quebec_refund_or_balance: Decimal | None = None
     benefit_estimates: dict[str, Decimal] = Field(default_factory=dict)
+    carryforwards: dict[str, CarryforwardAmount] = Field(default_factory=dict)
     missing_documents: list[str] = Field(default_factory=list)
     input_digest: str | None = None
 

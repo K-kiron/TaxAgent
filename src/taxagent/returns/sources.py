@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -17,12 +19,14 @@ class SourceRef(BaseModel):
     retrieved_on: str = "2026-09-05"
 
 
-def _source(id: str, title: str, form_id: str, revision: str, url: str) -> SourceRef:
+def _source(
+    id: str, title: str, form_id: str, revision: str, url: str, tax_year: int = 2025
+) -> SourceRef:
     return SourceRef(
         id=id,
         title=title,
         form_id=form_id,
-        tax_year=2025,
+        tax_year=tax_year,
         revision=revision,
         url=url,
     )
@@ -233,3 +237,70 @@ SOURCES: dict[str, SourceRef] = {
         "https://www.revenuquebec.ca/documents/en/formulaires/tp/2025-12/TP-1.D.U-V(2025-12).pdf",
     ),
 }
+
+
+_annual_sources: dict[str, SourceRef] = {}
+
+for _year in range(2020, 2025):
+    _short_year = str(_year)[-2:]
+    _edition = f"{_year}-12"
+    _annual = {
+        f"cra_{_year}_5005_r": (
+            f"{_year} Income Tax and Benefit Return for Quebec residents",
+            "5005-R",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5005-r/5005-r-{_short_year}e.pdf",
+        ),
+        f"cra_{_year}_schedule_6_qc": (
+            f"{_year} Schedule 6 Canada Workers Benefit for Quebec",
+            "5005-S6",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5005-s6/5005-s6-{_short_year}e.pdf",
+        ),
+        f"cra_{_year}_schedule_7": (
+            f"{_year} Schedule 7 RRSP, PRPP and SPP Contributions and Transfers",
+            "5000-S7",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5000-s7/5000-s7-{_short_year}e.pdf",
+        ),
+        f"cra_{_year}_schedule_8_qc": (
+            f"{_year} Schedule 8 Quebec Pension Plan Contributions",
+            "5005-S8",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5005-s8/5005-s8-{_short_year}e.pdf",
+        ),
+        f"cra_{_year}_schedule_10_qc": (
+            f"{_year} Schedule 10 EI and PPIP Premiums",
+            "5005-S10",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5005-s10/5005-s10-{_short_year}e.pdf",
+        ),
+        f"cra_{_year}_schedule_11_qc": (
+            f"{_year} Schedule 11 Federal Tuition Amount and Canada Training Credit",
+            "5005-S11",
+            f"E ({_short_year})",
+            f"https://www.canada.ca/content/dam/cra-arc/formspubs/pbg/5005-s11/5005-s11-{_short_year}e.pdf",
+        ),
+        f"rq_{_year}_tp1": (
+            f"{_year} Quebec Income Tax Return",
+            "TP-1.D-V",
+            _edition,
+            f"https://www.revenuquebec.ca/documents/en/formulaires/tp/{_edition}/TP-1.D-V({_edition}).pdf",
+        ),
+    }
+    for _schedule in ("B", "F", "K", "M", "P", "T") + (("U",) if _year == 2024 else ()):
+        _annual[f"rq_{_year}_schedule_{_schedule.lower()}"] = (
+            f"{_year} Quebec Schedule {_schedule}",
+            f"TP-1.D.{_schedule}-V",
+            _edition,
+            f"https://www.revenuquebec.ca/documents/en/formulaires/tp/{_edition}/TP-1.D.{_schedule}-V({_edition}).pdf",
+        )
+    _annual_sources.update(
+        {
+            source_id: _source(source_id, title, form_id, revision, url, _year)
+            for source_id, (title, form_id, revision, url) in _annual.items()
+        }
+    )
+
+ANNUAL_SOURCES = MappingProxyType(_annual_sources)
+ALL_SOURCES = MappingProxyType({**SOURCES, **ANNUAL_SOURCES})
