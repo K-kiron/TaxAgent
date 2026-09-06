@@ -18,6 +18,12 @@ from .models import ImportedDocument, ImportedSlipCandidate
 DEFAULT_WORKER_MODULE = "taxagent.intake._pdf_worker"
 DEFAULT_WORKER_MEMORY_LIMIT_BYTES = 1536 * 1024 * 1024
 WORKER_MEMORY_LIMIT_ENV = "TAXAGENT_PDF_WORKER_MEMORY_LIMIT_BYTES"
+LINUX_THREAD_LIMIT_ENV = (
+    "OPENBLAS_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+)
 MAX_WORKER_OUTPUT_BYTES = 2_000_000
 _WORKER_STDOUT_CHUNK_BYTES = 64 * 1024
 
@@ -42,10 +48,7 @@ def run_import_one_pdf_worker(
         return _resource_limited(payload)
 
     creationflags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
-    worker_env = os.environ.copy()
-    worker_env[WORKER_MEMORY_LIMIT_ENV] = str(
-        DEFAULT_WORKER_MEMORY_LIMIT_BYTES if memory_limit_bytes is None else memory_limit_bytes
-    )
+    worker_env = _worker_environment(memory_limit_bytes)
     process = subprocess.Popen(
         [sys.executable, "-m", worker_module],
         stdin=subprocess.PIPE,
@@ -92,6 +95,16 @@ def _resource_limited(payload: dict[str, Any]) -> PdfWorkerResult:
         candidates=[],
         ocr_exhausted=True,
     )
+
+
+def _worker_environment(memory_limit_bytes: int | None) -> dict[str, str]:
+    worker_env = os.environ.copy()
+    worker_env[WORKER_MEMORY_LIMIT_ENV] = str(
+        DEFAULT_WORKER_MEMORY_LIMIT_BYTES if memory_limit_bytes is None else memory_limit_bytes
+    )
+    if sys.platform.startswith("linux"):
+        worker_env.update({name: "1" for name in LINUX_THREAD_LIMIT_ENV})
+    return worker_env
 
 
 def _communicate_bounded(

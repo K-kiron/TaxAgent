@@ -50,6 +50,21 @@ def _process_is_running(pid: int) -> bool:
         kernel32.CloseHandle(handle)
 
 
+def test_linux_pdf_worker_environment_bounds_native_threads(monkeypatch):
+    monkeypatch.setattr(intake_execution.sys, "platform", "linux")
+    monkeypatch.setenv("OPENBLAS_NUM_THREADS", "99")
+
+    worker_env = intake_execution._worker_environment(123456)
+
+    assert worker_env[intake_execution.WORKER_MEMORY_LIMIT_ENV] == "123456"
+    assert {name: worker_env[name] for name in intake_execution.LINUX_THREAD_LIMIT_ENV} == {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+    }
+
+
 def test_import_pdf_batch_kills_stalled_worker_and_keeps_prior_valid_file(
     monkeypatch, tmp_path: Path
 ):
