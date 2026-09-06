@@ -25,6 +25,8 @@ python scripts/marketing/discovery_measurement.py \
 
 The snapshot preserves unavailable inputs as `available=false` with null counts. Reported zero counts remain numeric zero.
 
+For referrers and popular paths, missing inputs or saved API errors produce `null`; a successful empty response remains `[]`. An unavailable optional endpoint does not discard valid views or clone counts.
+
 ## Minimal Outcome Definitions
 
 - Views: GitHub aggregate repository page views in the traffic window.

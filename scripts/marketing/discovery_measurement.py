@@ -70,6 +70,8 @@ def _top_items(path: Path | None, *, label: str, text_fields: tuple[str, ...]) -
         return None
 
     payload = _read_json(path)
+    if isinstance(payload, dict) and "message" in payload:
+        return None
     if not isinstance(payload, list):
         raise ValueError(f"{label} JSON must be a list")
 
