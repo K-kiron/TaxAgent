@@ -121,6 +121,26 @@ def test_snapshot_is_aggregate_only_and_drops_daily_rows(tmp_path):
     ]
 
 
+@pytest.mark.parametrize("failed_source", ["referrers", "paths"])
+def test_optional_endpoint_error_preserves_other_measurements(tmp_path, failed_source):
+    views = _write_json(tmp_path / "views.json", {"count": 5, "uniques": 2})
+    clones = _write_json(tmp_path / "clones.json", {"count": 3, "uniques": 1})
+    error = _write_json(tmp_path / "error.json", {"message": "API rate limit exceeded"})
+    empty = _write_json(tmp_path / "empty.json", [])
+    snapshot = build_snapshot(
+        repo="K-kiron/TaxAgent",
+        collected_at="2026-09-06T12:00:00Z",
+        views_path=views,
+        clones_path=clones,
+        referrers_path=error if failed_source == "referrers" else empty,
+        paths_path=error if failed_source == "paths" else empty,
+    )
+    assert snapshot["views"] == {"available": True, "count": 5, "uniques": 2}
+    assert snapshot["clones"] == {"available": True, "count": 3, "uniques": 1}
+    assert snapshot["top_referrers"] == (None if failed_source == "referrers" else [])
+    assert snapshot["popular_paths"] == (None if failed_source == "paths" else [])
+
+
 def test_cli_requires_explicit_output_and_refuses_overwrite(tmp_path, capsys):
     views_path = _write_json(tmp_path / "views.json", {"count": 1, "uniques": 1, "views": []})
     output_path = tmp_path / "snapshot.json"
