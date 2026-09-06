@@ -13,7 +13,9 @@
   <a href="#current-scope">Current scope</a> |
   <a href="#workflow">Workflow</a> |
   <a href="#privacy">Privacy</a> |
-  <a href="docs/user/guide.md">User guide</a>
+  <a href="docs/user/guide.md">User guide</a> |
+  <a href="https://k-kiron.github.io/TaxAgent/">Project documentation</a> |
+  <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
 <p align="center">
@@ -33,13 +35,13 @@ It does not file a return, connect to CRA or Revenu Quebec accounts, request gov
 
 ## Quick Start
 
-Clone the main branch and install the local web extra.
+Clone the development preview on `dev` and install the local web extra. Review the supported scope before using the preparation workspace.
 
 <details open>
 <summary>Windows PowerShell</summary>
 
 ```powershell
-git clone https://github.com/K-kiron/TaxAgent.git
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
@@ -56,7 +58,7 @@ Open the [local TaxAgent app](http://127.0.0.1:8056).
 <summary>Linux or macOS</summary>
 
 ```bash
-git clone https://github.com/K-kiron/TaxAgent.git
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 python3.11 -m venv .venv
 . .venv/bin/activate
