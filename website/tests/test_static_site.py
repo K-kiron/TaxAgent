@@ -61,13 +61,16 @@ class StaticSiteTest(unittest.TestCase):
     def test_generates_six_readable_pages_and_assets(self) -> None:
         out = self.build()
         pages = self.html_files(out)
-        self.assertEqual(6, len(pages))
+        self.assertEqual(10, len(pages))
         self.assertTrue((out / "assets" / "site.css").is_file())
         self.assertTrue((out / "assets" / "taxagent-logo.png").is_file())
         root_text = (out / "index.html").read_text(encoding="utf-8")
         self.assertIn("TaxAgent Canada", root_text)
         self.assertIn("git clone --branch dev", (out / "getting-started" / "index.html").read_text(encoding="utf-8"))
         self.assertIn("git clone --branch dev", (out / "fr" / "demarrage" / "index.html").read_text(encoding="utf-8"))
+        self.assertIn("synthetic_2025_qc_salary_student.json", (out / "walkthrough" / "index.html").read_text(encoding="utf-8"))
+        self.assertIn("synthetic_2025_qc_salary_student.json", (out / "fr" / "parcours" / "index.html").read_text(encoding="utf-8"))
+        self.assertIn("CONTRIBUTING.md", (out / "coverage" / "index.html").read_text(encoding="utf-8"))
         self.assertIn("README dev (en anglais)", (out / "fr" / "index.html").read_text(encoding="utf-8"))
         self.assertFalse((out / "robots.txt").exists())
 
@@ -96,13 +99,19 @@ class StaticSiteTest(unittest.TestCase):
             "index.html": "https://k-kiron.github.io/TaxAgent/",
             "getting-started/index.html": "https://k-kiron.github.io/TaxAgent/getting-started/",
             "faq-scope/index.html": "https://k-kiron.github.io/TaxAgent/faq-scope/",
+            "walkthrough/index.html": "https://k-kiron.github.io/TaxAgent/walkthrough/",
+            "coverage/index.html": "https://k-kiron.github.io/TaxAgent/coverage/",
             "fr/index.html": "https://k-kiron.github.io/TaxAgent/fr/",
             "fr/demarrage/index.html": "https://k-kiron.github.io/TaxAgent/fr/demarrage/",
+            "fr/parcours/index.html": "https://k-kiron.github.io/TaxAgent/fr/parcours/",
+            "fr/portee-versionnee/index.html": "https://k-kiron.github.io/TaxAgent/fr/portee-versionnee/",
             "fr/faq-portee/index.html": "https://k-kiron.github.io/TaxAgent/fr/faq-portee/",
         }
         pairs = [
             ("index.html", "fr/index.html"),
             ("getting-started/index.html", "fr/demarrage/index.html"),
+            ("walkthrough/index.html", "fr/parcours/index.html"),
+            ("coverage/index.html", "fr/portee-versionnee/index.html"),
             ("faq-scope/index.html", "fr/faq-portee/index.html"),
         ]
         for rel, canonical in expected.items():
@@ -166,17 +175,18 @@ class StaticSiteTest(unittest.TestCase):
             with self.assertRaises(ValueError, msg=url):
                 builder.preview_url(url)
 
-    def test_output_cleanup_is_manifest_managed(self) -> None:
+    def test_output_guard_is_manifest_managed(self) -> None:
         out = self.build()
         marker = out / builder.MARKER
         data = builder.json.loads(marker.read_text(encoding="utf-8"))
-        stale = out / "old" / "stale.html"
-        stale.parent.mkdir()
-        stale.write_text("old", encoding="utf-8")
-        data["files"].append("old/stale.html")
+        extra = out / "old" / "preserved.html"
+        extra.parent.mkdir()
+        extra.write_text("manual", encoding="utf-8")
+        data["files"].append("old/preserved.html")
         marker.write_text(builder.json.dumps(data), encoding="utf-8")
         builder.build(out, "https://k-kiron.github.io/TaxAgent", False)
-        self.assertFalse(stale.exists())
+        self.assertTrue(extra.exists())
+        self.assertEqual("manual", extra.read_text(encoding="utf-8"))
 
         unmarked = self.tmp / "manual"
         unmarked.mkdir()
@@ -200,6 +210,8 @@ class StaticSiteTest(unittest.TestCase):
             r"official government service",
             r"all data stays local",
             r"now live at https://k-kiron\.github\.io/TaxAgent",
+            r"release PR #6",
+            r"public landing branch",
         ]
         for pattern in forbidden_patterns:
             self.assertIsNone(re.search(pattern, corpus, flags=re.IGNORECASE), pattern)

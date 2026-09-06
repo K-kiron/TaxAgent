@@ -6,12 +6,12 @@ It is not certified filing software. It does not submit to CRA or Revenu Quebec,
 
 ## 1. Install And Start
 
-Use the `feat/issue-4-pdf-multiyear` branch.
+Use the development preview on the `dev` branch. The [project documentation](https://k-kiron.github.io/TaxAgent/) includes English and French setup and scope summaries.
 
 Windows PowerShell:
 
 ```powershell
-git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
@@ -23,7 +23,7 @@ py -3.11 -m venv .venv
 Linux:
 
 ```bash
-git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
+git clone --branch dev https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 python3.11 -m venv .venv
 . .venv/bin/activate
