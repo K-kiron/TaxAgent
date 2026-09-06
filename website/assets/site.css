@@ -309,18 +309,32 @@ code {
 }
 
 .pill-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  align-self: start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(1.25rem, 4vw, 3rem);
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
 .pill-list li {
-  background: rgba(65, 108, 80, 0.11);
-  border: 1px solid rgba(65, 108, 80, 0.26);
-  border-radius: 999px;
-  padding: 0.4rem 0.65rem;
+  position: relative;
+  min-width: 0;
+  border-top: 1px solid rgba(31, 33, 29, 0.18);
+  padding: 0.72rem 0 0.72rem 1.05rem;
+  color: #363932;
+}
+
+.pill-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.38rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: var(--maple);
 }
 
 .site-footer {
@@ -339,7 +353,8 @@ code {
   .site-header,
   .hero,
   .content-grid,
-  .card-grid {
+  .card-grid,
+  .pill-list {
     grid-template-columns: 1fr;
   }
 
