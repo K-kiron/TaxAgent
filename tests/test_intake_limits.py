@@ -13,13 +13,16 @@ import taxagent.intake.execution as intake_execution
 import taxagent.intake.pdf as pdf_intake
 
 
-def _text_pdf() -> bytes:
+def _text_pdf(label: str = "valid") -> bytes:
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(612, 792))
+    pdf.setTitle(f"TaxAgent intake limit fixture: {label}")
+    pdf.setAuthor("TaxAgent tests")
     pdf.drawString(72, 750, "T4 Statement of Remuneration Paid")
     pdf.drawString(72, 730, "Tax year 2025")
     pdf.drawString(72, 710, "Employer name Example Robotics Inc.")
     pdf.drawString(72, 690, "Box 14 Employment income 45,000.00")
+    pdf.drawString(72, 670, f"Fixture role {label}")
     pdf.save()
     return buffer.getvalue()
 
@@ -165,7 +168,7 @@ def test_import_pdf_batch_reaps_memory_limited_worker_and_keeps_prior_valid_file
     monkeypatch.setattr(pdf_intake, "_PDF_WORKER_MODULE", "memory_pdf_worker")
 
     result = pdf_intake.import_pdf_batch(
-        [("valid.pdf", _text_pdf()), ("oom.pdf", _text_pdf())],
+        [("valid.pdf", _text_pdf("valid")), ("oom.pdf", _text_pdf("oom"))],
         enable_ocr=False,
         max_ocr_seconds=10.0,
     )
