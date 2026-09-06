@@ -62,7 +62,7 @@ def _input_digest(data: TaxReturnInput) -> str:
 
 def _annual_ruleset_hash(year: int) -> str:
     digest = hashlib.sha256()
-    for path in (Path(__file__).with_name("models.py"), Path(__file__).with_name("annual_rules.py"), Path(__file__).with_name("annual_main_lines.json"), Path(__file__).with_name("engine.py")):
+    for path in (Path(__file__).with_name("models.py"), Path(__file__).with_name("annual_rules.py"), Path(__file__).with_name("gates.py"), Path(__file__).with_name("annual_main_lines.json"), Path(__file__).with_name("engine.py")):
         digest.update(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n"))
     manifest = {
         source_id: source.model_dump(mode="json")

@@ -10,6 +10,7 @@ import re
 from types import MappingProxyType
 
 from .models import CompletenessBlocker, LineValue, ScheduleResult, TaxReturnInput
+from .gates import _advance_payment_blockers, _resp_eap_blockers, _scholarship_blockers
 
 
 ZERO = Decimal("0.00")
@@ -246,6 +247,10 @@ def required_money_boxes(slip_type: str, year: int, present_boxes: set[str]) -> 
         return {"24", "25", "26"}
     if slip_type == "RRSP_RECEIPT":
         return {"amount"}
+    if slip_type == "RC210":
+        return {"10", "11"}
+    if slip_type == "RL19":
+        return {"A", "B"}
     return set()
 
 
@@ -305,7 +310,7 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
         problems.append(blocker("wrong_slip_year", "Every slip must belong to the selected tax year.", ["slips"], year))
     if any(slip.confirmed is not True for slip in data.slips):
         problems.append(blocker("unconfirmed_slip", "Every imported slip must be confirmed.", ["slips"], year))
-    supported = {"T4", "RL1", "T5", "RL3", "T4A", "T4E", "T2202", "RRSP_RECEIPT", "RC210"}
+    supported = {"T4", "RL1", "T5", "RL3", "T4A", "T4E", "T2202", "RRSP_RECEIPT", "RC210", "RL19"}
     if any(slip.slip_type.upper() not in supported for slip in data.slips):
         problems.append(blocker("unsupported_slip", "An imported slip is outside annual coverage.", ["slips"], year))
     allowed_boxes = {
@@ -315,6 +320,7 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
         "T4A": {"022", "22", "042", "105", "201", *PANDEMIC_BOXES},
         "T4E": {"14", "15", "17", "18", "22", "23", "26", "30", "33", "36", "37"},
         "T2202": {"24", "25", "26"}, "RRSP_RECEIPT": {"amount"}, "RC210": {"10", "11"},
+        "RL19": {"A", "B"},
     }
     ignored_positive = [f"slips.{slip.document_id}.fields.{box}" for slip in data.slips for box, value in slip.fields.items() if box not in allowed_boxes.get(slip.slip_type.upper(), set()) and isinstance(value, Decimal) and value != ZERO]
     if ignored_positive:
@@ -334,6 +340,21 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
     ]
     if invalid_money_boxes:
         problems.append(blocker("invalid_slip_box_type", "Required slip boxes must be numeric amounts.", invalid_money_boxes, year))
+    # These evidence gates do not calculate year-specific tax amounts. Preserve
+    # annual source references instead of attaching their 2025 citations.
+    evidence_gates = [_scholarship_blockers, _resp_eap_blockers]
+    if not invalid_money_boxes:
+        evidence_gates.append(_advance_payment_blockers)
+    for gate in evidence_gates:
+        problems.extend(blocker(item.code, item.message, item.input_paths, year) for item in gate(data))
+    missing_instalments = [
+        f"instalments.{name}"
+        for name in ("federal_reviewed", "federal_paid", "quebec_reviewed", "quebec_paid")
+        if getattr(data.instalments, name) is None
+        or (name.endswith("reviewed") and getattr(data.instalments, name) is not True)
+    ]
+    if missing_instalments:
+        problems.append(blocker("missing_instalment_answers", "Federal and Quebec instalments must be reviewed and entered, including zero.", missing_instalments, year))
     missing_t4_metadata = [
         f"slips.{slip.document_id}.{name}"
         for slip in slips(data, "T4")
@@ -538,8 +559,8 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
     if credits.rl19_has_other_advance_boxes or credits.adapted_work_premium_eligible or (credits.work_premium_supplement_months or 0) > 0 or credits.request_tax_shield:
         problems.append(blocker("unsupported_refundable_credit_branch", "An additional refundable-credit branch applies outside this profile.", ["refundable_credits"], year))
     cwb_facts = ("cwb_incarcerated_90_days", "cwb_foreign_officer_exempt")
-    if any(getattr(credits, name) is None for name in cwb_facts) or data.taxpayer.was_full_time_student_more_than_13_weeks is None:
-        problems.append(blocker("missing_cwb_eligibility", "The annual CWB eligibility facts must be answered.", ["taxpayer.was_full_time_student_more_than_13_weeks", *[f"refundable_credits.{name}" for name in cwb_facts]], year))
+    if any(getattr(credits, name) is None for name in cwb_facts) or data.taxpayer.was_full_time_student_more_than_13_weeks is None or data.taxpayer.age_dec31 is None:
+        problems.append(blocker("missing_cwb_eligibility", "The annual CWB eligibility facts must be answered.", ["taxpayer.age_dec31", "taxpayer.was_full_time_student_more_than_13_weeks", *[f"refundable_credits.{name}" for name in cwb_facts]], year))
     work_facts = ("work_premium_eligible_status", "quebec_work_premium_full_time_student", "transferred_schedule_s_amount", "family_allowance_received_for_self", "designated_as_dependent_child", "incarcerated_over_183_days")
     if any(getattr(credits, name) is None for name in work_facts):
         problems.append(blocker("missing_work_premium_eligibility", "The annual work-premium eligibility facts must be answered.", [f"refundable_credits.{name}" for name in work_facts], year))
@@ -662,6 +683,7 @@ def calculate_annual_federal(data: TaxReturnInput, rules: AnnualRules) -> Schedu
     nrtc = money(credit_base * D(".15"))
     basic_tax = max(money(federal_tax - nrtc), ZERO)
     disqualified_cwb = any((
+        data.taxpayer.age_dec31 is None or data.taxpayer.age_dec31 < 19,
         data.taxpayer.was_full_time_student_more_than_13_weeks is True,
         data.refundable_credits.cwb_incarcerated_90_days is True,
         data.refundable_credits.cwb_foreign_officer_exempt is True,
