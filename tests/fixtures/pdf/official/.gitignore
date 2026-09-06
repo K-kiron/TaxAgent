@@ -1,0 +1,6 @@
+/official/
+/generated/*
+!/generated/
+!/generated/cra-t4-2025-official-layout-filled-flattened.pdf
+!/generated/rq-rl1-2025-official-layout-filled-flattened.pdf
+!/manifest.json

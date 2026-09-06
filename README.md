@@ -5,15 +5,15 @@
 <h1 align="center">TaxAgent Canada</h1>
 
 <p align="center">
-  Local-first preparation workspace for a bounded 2025 Quebec and federal personal return.
+  Local-first PDF intake and return-preparation workspace for a bounded Quebec salary/student profile.
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> ·
-  <a href="#what-it-does">What it does</a> ·
-  <a href="#privacy">Privacy</a> ·
-  <a href="docs/user_guide.md">User guide</a> ·
-  <a href="docs/coverage.md">Coverage</a>
+  <a href="#quick-start">Quick start</a> |
+  <a href="#current-scope">Current scope</a> |
+  <a href="#workflow">Workflow</a> |
+  <a href="#privacy">Privacy</a> |
+  <a href="docs/user/guide.md">User guide</a>
 </p>
 
 <p align="center">
@@ -22,19 +22,24 @@
   <img alt="Localhost app" src="https://img.shields.io/badge/Localhost-127.0.0.1-green?style=flat-square">
 </p>
 
-TaxAgent Canada helps a user collect supported slips and facts, calculate covered federal and Quebec return lines, review blockers, and export JSON or a human-readable review packet.
+TaxAgent Canada helps you:
 
-It does not submit a return, request CRA or Revenu Quebec credentials, connect to government accounts, or claim filing certification.
+- Import local tax-slip PDFs into a 2020-2025 year workspace.
+- Review unresolved PDF candidates, duplicates, amendments, and missing facts.
+- Calculate covered federal and Quebec return lines for ready active years.
+- Save input JSON, result JSON, and a text review packet for your own records.
 
-## Quick start
+It does not file a return, connect to CRA or Revenu Quebec accounts, request government credentials, or create NETFILE, ReFILE, or NetFile Quebec submission files.
 
-Clone this branch and install the local web extra.
+## Quick Start
+
+Install from the current issue branch with the local web extra.
 
 <details open>
 <summary>Windows PowerShell</summary>
 
 ```powershell
-git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
+git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
@@ -43,15 +48,15 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\taxagent.exe start
 ```
 
-Open `http://127.0.0.1:8056`.
+Open the [local TaxAgent app](http://127.0.0.1:8056).
 
 </details>
 
 <details>
-<summary>Linux or macOS</summary>
+<summary>Linux</summary>
 
 ```bash
-git clone --branch feat/issue-2-2025-tax-returns https://github.com/K-kiron/TaxAgent.git
+git clone --branch feat/issue-4-pdf-multiyear https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 python3.11 -m venv .venv
 . .venv/bin/activate
@@ -61,60 +66,41 @@ taxagent doctor
 taxagent start
 ```
 
-Open `http://127.0.0.1:8056`.
+Open the [local TaxAgent app](http://127.0.0.1:8056).
 
 </details>
 
-## What it does
+## Current Scope
 
 | Area | Current support |
 | --- | --- |
-| Return year | 2025 |
+| Years | Batch workspace for 2020 through 2025 |
 | Jurisdiction | Federal Canada + Quebec |
-| Profile | Full-year Canadian and Quebec resident, single, no dependants, age 19 to 64 |
-| Income path | Supported salary/student facts with explicit coverage questions |
-| Slips | T4, RL-1, T4A, T5, RL-3, T2202, RRSP receipt, RC210, RL-19 supported fields |
-| Output | Federal and Quebec line tables, schedules, blockers, warnings, source/provenance details, JSON export, text review packet |
-| Filing | Review artifact only; no NETFILE, ReFILE, Revenu Quebec submission, or government-account access |
+| Supported persona | Full-year Canadian and Quebec resident, Quebec province on December 31, single, no dependants, ordinary salary/student situation |
+| PDF intake | Local digital-text PDFs, AcroForm fields, and bounded local OCR |
+| Imported slips | T4, RL-1, T4A, T4E, T5, RL-3, T2202, RL-8 tuition evidence, RRSP receipts, RC210, and RL-19 within implemented boxes |
+| Filing | Preparation and export only |
 
-Unsupported facts block calculation instead of producing estimated numbers. The detailed profile, form-line coverage, and exclusions are in [docs/coverage.md](docs/coverage.md).
+Unsupported or unknown facts block calculation instead of being estimated. The detailed operating guide, limits, collection links, and filing handoff notes are in the [TaxAgent user guide](docs/user/guide.md).
 
-## Browser workflow
+## Workflow
 
-1. Check whether your situation fits the supported 2025 Quebec profile.
-2. Enter supported slips, account-review facts, and required confirmations.
-3. Calculate covered federal and Quebec return lines.
-4. Review blockers, warnings, T1/TP-1 lines, schedules, and source details.
-5. Save editable input JSON or a text review packet.
-
-The browser supports structured JSON import and manual slip entry. A slip row can show a local PDF preview using the browser's built-in viewer, but this release does not extract boxes from PDFs or OCR scanned slips.
-
-## CLI commands
-
-```powershell
-.\.venv\Scripts\taxagent.exe doctor
-.\.venv\Scripts\taxagent.exe rule-card list
-.\.venv\Scripts\taxagent.exe calculate .\taxagent_slips.v1.json --output .\taxagent_calculation_packet.v1.json
-.\.venv\Scripts\taxagent.exe profile --user demo --tax-year 2025
-```
-
-`taxagent calculate` reads a normalized `TaxReturnInput` JSON file and writes a calculation packet. A complete packet includes line values, provenance, source references, and federal/Quebec refund-or-balance fields. A blocked packet includes blockers and omits headline refund-or-balance amounts until the missing or unsupported facts are resolved.
+1. Collect PDFs and account facts from your issuers, CRA records, and Revenu Quebec records.
+2. Start the local browser app and drop your PDF slips or restore a saved TaxAgent JSON workspace.
+3. Check the year summary and resolve only candidates or facts that the app flags for review.
+4. Choose the active years that need a return. For a year with no income slips, create an explicit no-slip year.
+5. Confirm the supported profile and answer the facts that still block the selected year.
+6. Select Calculate ready years. The app processes active consecutive years in order and reports any blockers.
+7. Save the input JSON, result JSON, or text review packet you want to keep.
 
 ## Privacy
 
-The local preparation workflow runs on loopback and has no model dependency for calculation. It does not call third-party services or transmit tax data to CRA, Revenu Quebec, or tax software accounts.
+The preparation app runs on loopback and performs PDF/OCR work locally. The deterministic return calculation does not call a language model, CRA, Revenu Quebec, or tax software accounts.
 
-The browser keeps data in memory by default. Exported JSON and review packets are plaintext files on your computer, so store them only in a location you trust.
-
-## Documentation
-
-- [User guide](docs/user_guide.md) explains the browser workflow.
-- [Coverage matrix](docs/coverage.md) lists supported forms, lines, blockers, and exclusions.
+The browser keeps active data in memory by default. Reset clears the current in-memory workspace, selected PDFs, review choices, and results. Saved JSON and review packets are plaintext files on your computer.
 
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).
-
-## Disclaimer
 
 TaxAgent Canada is not certified tax software and does not provide certified tax, legal, accounting, or financial advice. Verify important decisions against official sources or a qualified professional before filing.

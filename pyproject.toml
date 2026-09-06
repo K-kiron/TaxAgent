@@ -1,16 +1,21 @@
 [project]
 name = "taxagent"
 version = "0.1.0"
-description = "TaxAgent Canada - local 2025 Quebec and federal return workspace"
+description = "TaxAgent Canada - local Quebec and federal return workspace for 2020-2025"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.7",
     "pydantic-ai-slim[openai]>=2.3.0",
+    "pypdf[crypto]==6.17.0",
+    "pypdfium2==5.13.0",
+    "rapidocr==3.9.2",
+    "onnxruntime==1.29.0",
 ]
 
 [project.optional-dependencies]
-dev = ["build>=1.2", "pytest>=8"]
-web = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
+dev = ["build>=1.2", "pytest>=8", "reportlab==5.0.1"]
+test = ["pytest>=8", "reportlab==5.0.1"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.29", "python-multipart>=0.0.20"]
 
 [project.scripts]
 taxagent = "taxagent.cli:main"
@@ -29,6 +34,7 @@ taxagent = [
     "web/static/*.css",
     "web/static/*.js",
     "web/static/*.json",
+    "returns/*.json",
 ]
 
 [tool.ruff]

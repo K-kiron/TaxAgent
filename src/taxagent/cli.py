@@ -173,6 +173,17 @@ def _local_ui_available() -> bool:
     return resources.files("taxagent").joinpath("web", "local_app.py").is_file() and _web_static_available()
 
 
+def _pdf_intake_dependencies() -> list[str]:
+    modules = {
+        "pypdf": "pypdf",
+        "pypdfium2": "pypdfium2",
+        "rapidocr": "rapidocr",
+        "onnxruntime": "onnxruntime",
+        "cryptography": "cryptography",
+    }
+    return [label for label, module in modules.items() if not _has_module(module)]
+
+
 def _cmd_doctor(args: argparse.Namespace) -> int:
     print("TaxAgent offline checks")
     failures: list[str] = []
@@ -200,6 +211,16 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
         failures.append("web extra missing (" + ", ".join(missing_web) + ")")
     else:
         print("ok: web extra")
+
+    missing_pdf = _pdf_intake_dependencies()
+    if missing_pdf:
+        failures.append(
+            "PDF intake dependency missing ("
+            + ", ".join(missing_pdf)
+            + "); reinstall the package with its default PDF dependencies"
+        )
+    else:
+        print("ok: PDF intake dependencies")
 
     try:
         if _local_engine_available():

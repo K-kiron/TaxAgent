@@ -92,6 +92,27 @@ def test_doctor_offline_does_not_probe_live_endpoint(monkeypatch, capsys):
     assert "local UI" in out
 
 
+def test_doctor_reports_missing_pdf_intake_dependency(monkeypatch, capsys):
+    from taxagent import cli
+
+    original = cli._has_module
+
+    def fake_has_module(name: str) -> bool:
+        if name == "cryptography":
+            return False
+        return original(name)
+
+    monkeypatch.setattr(cli, "_has_module", fake_has_module)
+
+    code = cli.main(["doctor"])
+
+    captured = capsys.readouterr()
+    assert code == 1
+    assert "PDF intake dependency missing" in captured.err
+    assert "cryptography" in captured.err
+    assert "default PDF dependencies" in captured.err
+
+
 def test_offline_cli_ignores_invalid_live_temperature_env(tmp_path):
     env = os.environ.copy()
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[1] / "src")

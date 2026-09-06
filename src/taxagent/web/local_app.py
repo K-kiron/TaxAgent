@@ -11,13 +11,24 @@ import hashlib
 import importlib
 import json
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
-from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from pydantic import ValidationError
 
+from ..intake import import_pdf_batch
+from ..intake.models import ImportedDocument, PdfImportBatchResult
+from ..intake.bridge import (
+    BatchWorkspace,
+    ReconcileRequest,
+    calculate_ready_years,
+    reconcile_workspace,
+    workspace_from_import,
+)
 from ..returns import (
     AdditionalReturnScreenInput,
     CompletenessBlocker,
@@ -41,7 +52,10 @@ from ..returns import (
 from ..returns.sources import SOURCES
 
 
-MAX_REQUEST_BYTES = 256 * 1024
+MAX_REQUEST_BYTES = 4 * 1024 * 1024
+MAX_BATCH_PDF_BYTES = 25_000_000
+MAX_BATCH_PDF_REQUEST_BYTES = MAX_BATCH_PDF_BYTES + 1_000_000
+MAX_BATCH_PDF_FILES = 50
 PROFILE_ID = "2025-qc-single-salaried-student-v1"
 _STATIC = Path(__file__).parent / "static"
 _LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
@@ -54,9 +68,7 @@ app = FastAPI(
 )
 
 
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next) -> Response:
-    response = await call_next(request)
+def _add_security_headers(response: Response) -> Response:
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self'; "
@@ -69,6 +81,40 @@ async def add_security_headers(request: Request, call_next) -> Response:
     )
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
+
+
+def _json_error(status_code: int, detail: dict[str, str]) -> Response:
+    return _add_security_headers(JSONResponse(status_code=status_code, content={"detail": detail}))
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next) -> Response:
+    if request.url.path == "/api/import-pdfs":
+        content_length = request.headers.get("content-length")
+        if content_length is None:
+            return _json_error(
+                411,
+                {"code": "missing_content_length", "message": "Content-Length is required for PDF batches."},
+            )
+        try:
+            declared_length = int(content_length)
+        except ValueError:
+            return _json_error(
+                400,
+                {"code": "invalid_content_length", "message": "Content-Length is invalid."},
+            )
+        if declared_length < 0:
+            return _json_error(
+                400,
+                {"code": "invalid_content_length", "message": "Content-Length is invalid."},
+            )
+        if declared_length > MAX_BATCH_PDF_REQUEST_BYTES:
+            return _json_error(
+                413,
+                {"code": "batch_too_large", "message": "The PDF batch is too large."},
+            )
+    response = await call_next(request)
+    return _add_security_headers(response)
 
 
 def _blank_input() -> TaxReturnInput:
@@ -284,6 +330,10 @@ def _dump_model(model) -> dict:
     return model.model_dump(mode="json")
 
 
+def _dump_model_without_none(model) -> dict:
+    return model.model_dump(mode="json", exclude_none=True)
+
+
 def _source_payload() -> dict:
     return {source_id: _dump_model(source) for source_id, source in SOURCES.items()}
 
@@ -390,6 +440,44 @@ async def _read_json_body(request: Request) -> dict:
             detail={"code": "invalid_schema", "message": "The calculation input must be a JSON object."},
         )
     return payload
+
+
+async def _read_pdf_uploads(files: list[UploadFile]) -> tuple[list[tuple[str, bytes]], list[ImportedDocument]]:
+    if not files:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "missing_files", "message": "Upload at least one PDF."},
+        )
+    uploads: list[tuple[str, bytes]] = []
+    rejected: list[ImportedDocument] = []
+    total = 0
+    for index, upload in enumerate(files, start=1):
+        filename = upload.filename or f"document-{index}.pdf"
+        content_type = (upload.content_type or "").lower()
+        if content_type and content_type not in {"application/pdf", "application/octet-stream"}:
+            rejected.append(_rejected_upload(filename, index, "unsupported", "Upload PDF files only."))
+            continue
+        data = await upload.read()
+        if len(uploads) >= MAX_BATCH_PDF_FILES:
+            rejected.append(_rejected_upload(filename, index, "too_many_files", "This file exceeds the batch file limit."))
+            continue
+        if total + len(data) > MAX_BATCH_PDF_BYTES:
+            rejected.append(_rejected_upload(filename, index, "too_large", "This file exceeds the batch byte limit."))
+            continue
+        total += len(data)
+        uploads.append((filename, data))
+    return uploads, rejected
+
+
+def _rejected_upload(filename: str, index: int, status: str, message: str) -> ImportedDocument:
+    return ImportedDocument(
+        document_id=hashlib.sha256(f"rejected:{index}:{filename}".encode("utf-8")).hexdigest()[:16],
+        filename=filename,
+        sha256="",
+        status=status,  # type: ignore[arg-type]
+        page_count=0,
+        message=message,
+    )
 
 
 def _schema_errors(exc: ValidationError) -> list[dict]:
@@ -526,6 +614,15 @@ def schema() -> dict:
         "province": "QC",
         "default_sample_loaded": False,
         "max_request_bytes": MAX_REQUEST_BYTES,
+        "batch_pdf": {
+            "endpoint": "/api/import-pdfs",
+            "reconcile_endpoint": "/api/reconcile-workspace",
+            "calculate_endpoint": "/api/calculate-years",
+            "max_files": MAX_BATCH_PDF_FILES,
+            "max_bytes": MAX_BATCH_PDF_BYTES,
+            "max_request_bytes": MAX_BATCH_PDF_REQUEST_BYTES,
+            "workspace_schema": "batch-workspace-v1",
+        },
         "profile": {
             "id": PROFILE_ID,
             "label": "2025 Quebec full-year resident, single salaried student profile",
@@ -561,7 +658,7 @@ def sample() -> dict:
     return {
         "sample_only": True,
         "label": "Sample supported 2025 Quebec salary/student fixture - not your data",
-        "input": _dump_model(_sample_input()),
+        "input": _dump_model_without_none(_sample_input()),
     }
 
 
@@ -599,6 +696,67 @@ async def calculate(request: Request) -> dict:
             "filing_submission": "not_supported",
         },
     }
+
+
+@app.post("/api/import-pdfs")
+async def import_pdfs(request: Request, files: list[UploadFile] = File(...)) -> dict:
+    _check_browser_boundary(request)
+    uploads, rejected = await _read_pdf_uploads(files)
+    if uploads:
+        import_result = await run_in_threadpool(
+            import_pdf_batch,
+            uploads,
+            max_files=MAX_BATCH_PDF_FILES,
+            max_bytes=MAX_BATCH_PDF_BYTES,
+        )
+        if rejected:
+            import_result = import_result.model_copy(
+                update={"documents": [*import_result.documents, *rejected]}
+            )
+    else:
+        import_result = PdfImportBatchResult(documents=rejected, candidates=[])
+    workspace = workspace_from_import(import_result)
+    return {
+        "import_result": import_result.model_dump(mode="json"),
+        "workspace": workspace.model_dump(mode="json"),
+    }
+
+
+@app.post("/api/calculate-years")
+async def calculate_years(request: Request) -> dict:
+    _check_browser_boundary(request)
+    payload = await _read_json_body(request)
+    try:
+        workspace = BatchWorkspace.model_validate(payload)
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "invalid_schema",
+                "message": "The input does not match BatchWorkspace.",
+                "errors": _schema_errors(exc),
+            },
+        ) from None
+    return calculate_ready_years(workspace)
+
+
+@app.post("/api/reconcile-workspace")
+async def reconcile_batch_workspace(request: Request) -> dict:
+    _check_browser_boundary(request)
+    payload = await _read_json_body(request)
+    try:
+        reconciled = reconcile_workspace(ReconcileRequest.model_validate(payload))
+    except (ValidationError, ValueError) as exc:
+        errors = _schema_errors(exc) if isinstance(exc, ValidationError) else [{"path": "workspace", "message": str(exc)}]
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "code": "invalid_schema",
+                "message": "The input does not match the workspace reconciliation contract.",
+                "errors": errors,
+            },
+        ) from None
+    return reconciled.model_dump(mode="json")
 
 
 app.mount("/static", StaticFiles(directory=str(_STATIC)), name="static")
