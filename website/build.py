@@ -17,11 +17,10 @@ from xml.etree import ElementTree
 ROOT = Path(__file__).resolve().parent
 REPO_ROOT = ROOT.parent
 TEMPLATE = (ROOT / "templates" / "page.html").read_text(encoding="utf-8")
-DEV_COMMIT = "a40a171"
 REPO_URL = "https://github.com/K-kiron/TaxAgent"
-DEV_README = f"{REPO_URL}/blob/{DEV_COMMIT}/README.md"
-DEV_GUIDE = f"{REPO_URL}/blob/{DEV_COMMIT}/docs/user/guide.md"
-DEV_COVERAGE = f"{REPO_URL}/blob/{DEV_COMMIT}/docs/coverage.md"
+DEV_README = f"{REPO_URL}/blob/dev/README.md"
+DEV_GUIDE = f"{REPO_URL}/blob/dev/docs/user/guide.md"
+DEV_COVERAGE = f"{REPO_URL}/blob/dev/docs/coverage.md"
 DEV_EXAMPLE = f"{REPO_URL}/blob/dev/examples/synthetic_2025_qc_salary_student.json"
 DEV_CONTRIBUTING = f"{REPO_URL}/blob/dev/CONTRIBUTING.md"
 MARKER = ".taxagent-site-output.json"
@@ -63,7 +62,7 @@ PAGES = [
   <div>
     <p class="eyebrow">Open-source tax preparation preview</p>
     <h1>TaxAgent Canada</h1>
-    <p class="lede">A local PDF intake and return-preparation workspace for reviewers evaluating a bounded Canadian and Quebec salary/student workflow. The runnable source is available on <code>dev</code>; the coverage wording here is based on the documented revision <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/coverage.md">a40a171</a>.</p>
+    <p class="lede">A local PDF intake and return-preparation workspace for reviewers evaluating a bounded Canadian and Quebec salary/student workflow. The runnable source is available on <code>dev</code>; the coverage wording here follows the current preview docs.</p>
   </div>
   <aside class="hero-card" aria-label="Project facts">
     <dl>
@@ -119,7 +118,7 @@ PAGES = [
   <aside class="hero-card" aria-label="Preview requirements">
     <dl>
       <div><dt>Python</dt><dd>Python 3.11+</dd></div>
-      <div><dt>Branch</dt><dd><code>dev</code> at documented preview revision <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/README.md">a40a171</a></dd></div>
+      <div><dt>Branch</dt><dd><code>dev</code> at the documented preview source.</dd></div>
       <div><dt>Local URL</dt><dd><code>http://127.0.0.1:8056</code></dd></div>
     </dl>
   </aside>
@@ -172,8 +171,8 @@ taxagent start</code></pre>
     <div><p class="eyebrow">References</p><h2>Read the preview docs.</h2></div>
     <div class="stack">
       <p>The branch-specific README and user guide describe the current preview and its limits.</p>
-      <p><a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/README.md">Development README at a40a171</a></p>
-      <p><a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/user/guide.md">Development user guide at a40a171</a></p>
+      <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/README.md">Development README</a></p>
+      <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/docs/user/guide.md">Development user guide</a></p>
       <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/CONTRIBUTING.md">Contributor guide on dev</a></p>
     </div>
   </div>
@@ -257,13 +256,13 @@ taxagent calculate examples/synthetic_2025_qc_salary_student.json --output synth
         brand_note="Canadian and Quebec preparation preview",
         language_label="Language",
         footer_text="Coverage is a source-code and documentation statement, not certification or filing authorization.",
-        footer_links=f'<a href="{REPO_URL}">GitHub</a> | <a href="{DEV_COVERAGE}">coverage at a40a171</a> | <a href="{DEV_CONTRIBUTING}">contributor guide</a>',
+        footer_links=f'<a href="{REPO_URL}">GitHub</a> | <a href="{DEV_COVERAGE}">coverage</a> | <a href="{DEV_CONTRIBUTING}">contributor guide</a>',
         body="""
 <section class="hero">
   <div>
     <p class="eyebrow">Versioned coverage</p>
     <h1>What the preview covers.</h1>
-    <p class="lede">This summary is based on the development documentation at revision <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/coverage.md">a40a171</a>. Newer development changes may adjust the supported inputs, blockers, or calculated line set.</p>
+    <p class="lede">This summary is based on the current development documentation. Future development changes may adjust the supported inputs, blockers, or calculated line set.</p>
   </div>
   <aside class="hero-card" aria-label="Coverage facts">
     <dl>
@@ -379,7 +378,7 @@ taxagent calculate examples/synthetic_2025_qc_salary_student.json --output synth
   <div>
     <p class="eyebrow">Projet fiscal à code source ouvert</p>
     <h1>TaxAgent Canada</h1>
-    <p class="lede">Un espace local d'importation de PDF et de préparation de déclarations pour évaluer un flux canadien et québécois délimité, axé sur un profil salarié/étudiant. La source exécutable est disponible sur <code>dev</code>; la portée décrite ici est fondée sur la révision documentée <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/coverage.md">a40a171</a>.</p>
+    <p class="lede">Un espace local d'importation de PDF et de préparation de déclarations pour évaluer un flux canadien et québécois délimité, axé sur un profil salarié/étudiant. La source exécutable est disponible sur <code>dev</code>; la portée décrite ici est fondée sur la documentation de développement actuelle.</p>
   </div>
   <aside class="hero-card" aria-label="Faits sur le projet">
     <dl>
@@ -432,7 +431,7 @@ taxagent calculate examples/synthetic_2025_qc_salary_student.json --output synth
   <aside class="hero-card" aria-label="Exigences de l'aperçu">
     <dl>
       <div><dt>Python</dt><dd>Python 3.11+</dd></div>
-      <div><dt>Branche</dt><dd><code>dev</code> à la révision documentée <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/README.md">a40a171</a></dd></div>
+      <div><dt>Branche</dt><dd><code>dev</code> à la source de développement documentée.</dd></div>
       <div><dt>URL locale</dt><dd><code>http://127.0.0.1:8056</code></dd></div>
     </dl>
   </aside>
@@ -485,8 +484,8 @@ taxagent start</code></pre>
     <div><p class="eyebrow">Références</p><h2>Lire la documentation d'aperçu.</h2></div>
     <div class="stack">
       <p>Le README et le guide liés à la révision documentent l'aperçu actuel et ses limites; ces documents sont en anglais.</p>
-      <p><a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/README.md">README de développement à a40a171 (en anglais)</a></p>
-      <p><a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/user/guide.md">Guide utilisateur de développement à a40a171 (en anglais)</a></p>
+      <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/README.md">README de développement (en anglais)</a></p>
+      <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/docs/user/guide.md">Guide utilisateur de développement (en anglais)</a></p>
       <p><a href="https://github.com/K-kiron/TaxAgent/blob/dev/CONTRIBUTING.md">Guide de contribution sur dev (en anglais)</a></p>
     </div>
   </div>
@@ -570,13 +569,13 @@ taxagent calculate examples/synthetic_2025_qc_salary_student.json --output synth
         brand_note="Aperçu de préparation Canada et Québec",
         language_label="Langue",
         footer_text="La portée décrit le code source et la documentation; ce n'est pas une certification ni une autorisation de transmission.",
-        footer_links=f'<a href="{REPO_URL}">GitHub</a> | <a href="{DEV_COVERAGE}">portée à a40a171 (en anglais)</a> | <a href="{DEV_CONTRIBUTING}">guide de contribution (en anglais)</a>',
+        footer_links=f'<a href="{REPO_URL}">GitHub</a> | <a href="{DEV_COVERAGE}">portée (en anglais)</a> | <a href="{DEV_CONTRIBUTING}">guide de contribution (en anglais)</a>',
         body="""
 <section class="hero">
   <div>
     <p class="eyebrow">Portée versionnée</p>
     <h1>Ce que couvre l'aperçu.</h1>
-    <p class="lede">Ce résumé est fondé sur la documentation de développement à la révision <a href="https://github.com/K-kiron/TaxAgent/blob/a40a171/docs/coverage.md">a40a171</a>. Des changements de développement plus récents peuvent ajuster les entrées prises en charge, les blocages ou l'ensemble des lignes calculées.</p>
+    <p class="lede">Ce résumé est fondé sur la documentation de développement actuelle. De futurs changements de développement peuvent ajuster les entrées prises en charge, les blocages ou l'ensemble des lignes calculées.</p>
   </div>
   <aside class="hero-card" aria-label="Faits de couverture">
     <dl>

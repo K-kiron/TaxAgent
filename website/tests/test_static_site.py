@@ -216,6 +216,11 @@ class StaticSiteTest(unittest.TestCase):
         for pattern in forbidden_patterns:
             self.assertIsNone(re.search(pattern, corpus, flags=re.IGNORECASE), pattern)
 
+    def test_public_copy_does_not_expose_commit_identifiers(self) -> None:
+        out = self.build()
+        corpus = "\n".join(path.read_text(encoding="utf-8") for path in self.html_files(out))
+        self.assertIsNone(re.search(r"\b[0-9a-f]{7,40}\b", corpus, flags=re.IGNORECASE))
+
 
 if __name__ == "__main__":
     unittest.main()
