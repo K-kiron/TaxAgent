@@ -15,17 +15,6 @@ from pydantic import BaseModel, Field
 Confidence = Literal["low", "medium", "high"]
 
 
-class DateRange(BaseModel):
-    start: date
-    end: date | None = None  # None = ongoing
-
-
-class TaxYear(BaseModel):
-    year: int
-    province_of_residence: str | None = None
-    residency_periods: list[DateRange] = Field(default_factory=list)
-
-
 class UserFact(BaseModel):
     """A single fact extracted from the user. `evidence_status` says how well the
     *fact* is backed — distinct from `EvidenceItem.status` (a document's lifecycle)."""

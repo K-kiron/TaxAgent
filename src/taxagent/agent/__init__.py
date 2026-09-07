@@ -1,5 +1,5 @@
-from .reasoner import Reasoner, answer_question
+from .reasoner import Reasoner
 from .render import render_markdown
 from .session import TaxSession
 
-__all__ = ["Reasoner", "TaxSession", "answer_question", "render_markdown"]
+__all__ = ["Reasoner", "TaxSession", "render_markdown"]

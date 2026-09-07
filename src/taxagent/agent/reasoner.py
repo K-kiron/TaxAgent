@@ -156,8 +156,3 @@ class Reasoner:
     ) -> tuple[Recommendation, list[RuleCard]]:
         rec, cards, _ = self.run_turn(question, tax_year=tax_year)
         return rec, cards
-
-
-def answer_question(question: str, *, tax_year: int | None = None):
-    """Convenience one-shot: returns (Recommendation, rule_cards)."""
-    return Reasoner().answer(question, tax_year=tax_year)

@@ -22,17 +22,20 @@ def test_demo_config_exposes_static_mode_without_secret(monkeypatch):
     client = _client(monkeypatch, live=False)
 
     res = client.get("/api/demo-config")
+    scenario_res = client.get("/static/demo_scenarios.json")
 
     assert res.status_code == 200
+    assert scenario_res.status_code == 200
     body = res.json()
     assert body["live_enabled"] is False
     assert body["max_chars"] == 120
-    assert len(body["scenarios"]) >= 4
     assert {w["id"] for w in body["workflows"]} == {
         "tax_question",
         "manual_intake",
         "document_review",
     }
+    assert "scenarios" not in body
+    assert len(scenario_res.json()) >= 4
     assert "demo-pin" not in res.text
 
 
