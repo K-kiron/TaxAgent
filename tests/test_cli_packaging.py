@@ -23,11 +23,10 @@ def test_packaged_ramq_cards_do_not_overclaim_registration_or_retroactivity():
     from taxagent.knowledge.rule_card import load_default_store
 
     store = load_default_store()
-    drug_premium = store.get("qc_ramq_drug_premium_v1")
-    pr_timing = store.get("qc_ramq_pr_timing_v1")
+    cards_by_id = {card.id: card for card in store.cards}
+    drug_premium = cards_by_id["qc_ramq_drug_premium_v1"]
+    pr_timing = cards_by_id["qc_ramq_pr_timing_v1"]
 
-    assert drug_premium is not None
-    assert pr_timing is not None
     assert "registered with the RAMQ public plan" not in drug_premium.rule_summary
     assert "qualifying prescription drug coverage" in drug_premium.rule_summary
     assert "statutory exemption" in drug_premium.rule_summary
@@ -69,7 +68,7 @@ def test_rule_cards_are_read_as_utf8(monkeypatch, tmp_path):
 
     store = load_default_store(card_dir)
 
-    assert store.get("utf8_card") is not None
+    assert {card.id for card in store.cards} == {"utf8_card"}
     assert encodings == ["utf-8"]
 
 

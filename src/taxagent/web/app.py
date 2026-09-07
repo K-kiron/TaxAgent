@@ -343,18 +343,6 @@ class StaticChatRequest(BaseModel):
     message: str = Field(min_length=1)
 
 
-def _facts_payload(session: TaxSession) -> list[dict]:
-    return [
-        {
-            "key": f.key,
-            "value": f.value,
-            "evidence_status": f.evidence_status,
-            "confidence": f.confidence,
-        }
-        for f in session.known_facts
-    ]
-
-
 @app.post("/api/chat")
 def chat(
     req: ChatRequest,
@@ -387,7 +375,7 @@ def chat(
         session, lock = _get_session(session_id)
         with lock:
             rec = session.ask(req.message, tax_year=req.tax_year)
-            return {"recommendation": rec.model_dump(), "profile_facts": _facts_payload(session)}
+            return {"recommendation": rec.model_dump()}
     finally:
         _leave_live_slot()
 
@@ -402,20 +390,14 @@ def static_chat(req: StaticChatRequest) -> dict:
                 "message": f"Demo questions are limited to {_max_chars()} characters.",
             },
         )
-    scenario, score, hits = _match_static_scenario(req.message)
+    scenario, score, _hits = _match_static_scenario(req.message)
     if scenario is None:
-        scenarios = [
-            {"id": s["id"], "title": s["title"], "workflow": s.get("workflow", "tax_question")}
-            for s in _load_demo_scenarios()[:4]
-        ]
         return {
             "matched": False,
             "mode": "fallback",
             "scenario_id": None,
             "scenario_title": None,
             "score": score,
-            "matched_terms": hits,
-            "suggested_scenarios": scenarios,
             "recommendation": _fallback_recommendation(req.message),
         }
     return {
@@ -424,28 +406,16 @@ def static_chat(req: StaticChatRequest) -> dict:
         "scenario_id": scenario["id"],
         "scenario_title": scenario["title"],
         "score": score,
-        "matched_terms": hits,
-        "suggested_scenarios": [],
         "recommendation": scenario["recommendation"],
     }
 
 
 @app.get("/api/demo-config")
 def demo_config() -> dict:
-    scenarios = [
-        {
-            "id": s["id"],
-            "title": s["title"],
-            "prompt": s["prompt"],
-            "workflow": s.get("workflow", "tax_question"),
-        }
-        for s in _load_demo_scenarios()
-    ]
     return {
         "live_enabled": _live_enabled(),
         "max_chars": _max_chars(),
         "workflows": _STATIC_WORKFLOWS,
-        "scenarios": scenarios,
     }
 
 

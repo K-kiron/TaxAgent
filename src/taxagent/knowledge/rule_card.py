@@ -25,12 +25,6 @@ class RuleCardStore:
     def cards(self) -> list[RuleCard]:
         return list(self._by_id.values())
 
-    def get(self, card_id: str) -> RuleCard | None:
-        return self._by_id.get(card_id)
-
-    def get_many(self, ids: list[str]) -> list[RuleCard]:
-        return [c for cid in ids if (c := self._by_id.get(cid)) is not None]
-
     def retrieve(
         self,
         query: str,

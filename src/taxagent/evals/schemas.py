@@ -27,6 +27,3 @@ class GoldenScenario(BaseModel):
     # smoke-test strings: a fast pre-filter, never the score; matched negation-aware
     smoke_include: list[str] = Field(default_factory=list)
     smoke_exclude_negation_aware: list[str] = Field(default_factory=list)
-    grade_with: list[Literal["structural", "smoke", "safety", "llm_judge"]] = Field(
-        default_factory=lambda: ["structural", "smoke", "safety"]
-    )
