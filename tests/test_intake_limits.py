@@ -84,9 +84,40 @@ def test_import_pdf_batch_kills_stalled_worker_and_keeps_prior_valid_file(
                 Path(os.environ["TAXAGENT_STALL_PID_FILE"]).write_text(str(os.getpid()))
                 time.sleep(60)
 
-            from taxagent.intake._pdf_worker import _run_payload
-
-            response = _run_payload(payload)
+            # PDF parsing is covered elsewhere; cold parser imports would make this
+            # subprocess supervisor timing test depend on runner performance.
+            response = {
+                "document": {
+                    "document_id": payload["document_id"],
+                    "filename": payload["filename"],
+                    "sha256": payload["digest"],
+                    "status": "processed",
+                    "page_count": 1,
+                    "message": None,
+                },
+                "candidates": [{
+                    "candidate_id": "cand_worker",
+                    "document_id": payload["document_id"],
+                    "slip_type": "T4",
+                    "tax_year": 2025,
+                    "issuer_id": "EXAMPLE ROBOTICS INC.",
+                    "decision": "accepted_auto",
+                    "fields": {
+                        "14": {
+                            "value": "45000.00",
+                            "method": "digital_text",
+                            "confidence": 0.99,
+                            "review_required": False,
+                            "page": 1,
+                            "bbox": None,
+                            "raw_text": "Box 14 Employment income 45,000.00",
+                        }
+                    },
+                }],
+                "ocr_pages_used": 0,
+                "ocr_pixels_used": 0,
+                "ocr_exhausted": False,
+            }
             sys.stdout.buffer.write(json.dumps(response, separators=(",", ":")).encode())
             """
         ),
