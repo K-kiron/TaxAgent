@@ -1,0 +1,370 @@
+{
+  "schema_version": "taxagent-synthetic-pdf-fixtures-v1",
+  "provenance": "Project-authored synthetic PDF fixtures for ordinary CI; these are not government forms and do not prove official-layout compatibility.",
+  "acroforms": [
+    {
+      "name": "synthetic-rl1-2024.pdf",
+      "bytes": 3731,
+      "sha256": "659ff361a425e9388353722ec86aaba9cfdba87e4745d752d16b37356cbac585"
+    },
+    {
+      "name": "synthetic-rl1-2025.pdf",
+      "bytes": 3731,
+      "sha256": "200779aed6149890ad16736ad39c7f554a146062e194c900ec47c652dca67be5"
+    },
+    {
+      "name": "synthetic-rl8-2022.pdf",
+      "bytes": 1947,
+      "sha256": "582936eb3bd9db39ae0f4f6ddbd1e21da73aa7629d144512229ec533f8e9f8cc"
+    },
+    {
+      "name": "synthetic-t2202-2024.pdf",
+      "bytes": 2306,
+      "sha256": "ac8ca1c11d6790849580f6bb830a1094c7dbb1804daaa8597f195837ebebf5bb"
+    },
+    {
+      "name": "synthetic-t2202-2025.pdf",
+      "bytes": 2306,
+      "sha256": "4338a41c4053687f87528bd028a2b41e1995558dc1516b4e29321bf83beb65fe"
+    },
+    {
+      "name": "synthetic-t4-2024.pdf",
+      "bytes": 7152,
+      "sha256": "fef8c0917ba839e2d265f9bd690a41a95f61ff22068f3fb9d74fd4e563a139d0"
+    },
+    {
+      "name": "synthetic-t4-2025.pdf",
+      "bytes": 7152,
+      "sha256": "c67d3273f82ff24fb3b6c6bd7bedf6672269bfdbae979ae9b0dc3011f5fde6b5"
+    },
+    {
+      "name": "synthetic-t4-instructions-2025.pdf",
+      "bytes": 1425,
+      "sha256": "e4de8eb48758345628683de5ea032c0a8465acd257b099201b7c5e29db488f0c"
+    }
+  ],
+  "release": [
+    {
+      "name": "release-synthetic-rl1-2020.pdf",
+      "bytes": 1696,
+      "sha256": "2e0612e19cde991e3ee82c793f6e9dd3e99e3de53da201dca3be3ffd7a94dc81"
+    },
+    {
+      "name": "release-synthetic-rl1-2021.pdf",
+      "bytes": 1696,
+      "sha256": "bbc61bc57ebb905dae10572adc896104b844a7cff0ea3ef67dd9e4b13c2c85ea"
+    },
+    {
+      "name": "release-synthetic-rl1-2022.pdf",
+      "bytes": 1696,
+      "sha256": "506561a261ec7af25740b1723ef0220379c63d866cc59353093b72d37cbf4c8a"
+    },
+    {
+      "name": "release-synthetic-rl1-2023.pdf",
+      "bytes": 1696,
+      "sha256": "8ee6096c4fc899c3be10396de625726b1de506c4f1541efc6c0466a395cd4e64"
+    },
+    {
+      "name": "release-synthetic-rl1-2024.pdf",
+      "bytes": 1696,
+      "sha256": "504b3a2b6bfeb02ab05b68384105c39fea6cd410059dbc30d507e45dccb43c0e"
+    },
+    {
+      "name": "release-synthetic-rl1-2025.pdf",
+      "bytes": 1697,
+      "sha256": "ccd9c099487b20c947307e8b99f3e2beb9d567a6b8ddb29f6dd0882ad43d5971"
+    },
+    {
+      "name": "release-synthetic-t4-2020.pdf",
+      "bytes": 1785,
+      "sha256": "4063319ae4307a2d2a006bee8b30b71820c83d6f6a51544f1fa78002f1b4b365"
+    },
+    {
+      "name": "release-synthetic-t4-2021.pdf",
+      "bytes": 1757,
+      "sha256": "7cae051cff980961b254c0144db11c13bfe6780dc4b294aeae7053ab970d147d"
+    },
+    {
+      "name": "release-synthetic-t4-2022.pdf",
+      "bytes": 1756,
+      "sha256": "fdc84b767a0af8ca201b1ad3f941629b2a0fe9997c2c366ed957f763b2baf871"
+    },
+    {
+      "name": "release-synthetic-t4-2023.pdf",
+      "bytes": 1756,
+      "sha256": "785b531bb95b9b3993202b12d28e86af3c7f39e5b5cc8bb8f8d57b7b19cda47b"
+    },
+    {
+      "name": "release-synthetic-t4-2024.pdf",
+      "bytes": 1756,
+      "sha256": "cbce02591eec83dc1f70e38d2ae0b9c752fce1af7d88089325ad62bc8e58147f"
+    },
+    {
+      "name": "release-synthetic-t4-2025.pdf",
+      "bytes": 1756,
+      "sha256": "8ca6c7b7109598328be4456398a2ab35d67ac720033c75e063d4723e36bd01f8"
+    }
+  ],
+  "annual_flow": [
+    {
+      "year": 2020,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2020.pdf",
+      "rl1": "release-synthetic-rl1-2020.pdf",
+      "salary": "40000.00",
+      "qpp": "2080.50",
+      "ei": "480.00",
+      "ppip": "197.60",
+      "federal_withholding": "0.00",
+      "quebec_withholding": "0.00",
+      "expected_federal_refund_or_balance": "-2851.68",
+      "expected_quebec_refund_or_balance": "-3475.28",
+      "expected_line_count": 510,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    },
+    {
+      "year": 2021,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2021.pdf",
+      "rl1": "release-synthetic-rl1-2021.pdf",
+      "salary": "40000.00",
+      "qpp": "2153.50",
+      "ei": "472.00",
+      "ppip": "197.60",
+      "federal_withholding": "0.00",
+      "quebec_withholding": "0.00",
+      "expected_federal_refund_or_balance": "-2769.52",
+      "expected_quebec_refund_or_balance": "-3432.68",
+      "expected_line_count": 524,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    },
+    {
+      "year": 2022,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2022.pdf",
+      "rl1": "release-synthetic-rl1-2022.pdf",
+      "salary": "40000.00",
+      "qpp": "2244.75",
+      "ei": "480.00",
+      "ppip": "197.60",
+      "federal_withholding": "0.00",
+      "quebec_withholding": "0.00",
+      "expected_federal_refund_or_balance": "-2679.43",
+      "expected_quebec_refund_or_balance": "-3352.24",
+      "expected_line_count": 527,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    },
+    {
+      "year": 2023,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2023.pdf",
+      "rl1": "release-synthetic-rl1-2023.pdf",
+      "salary": "40000.00",
+      "qpp": "2336.00",
+      "ei": "508.00",
+      "ppip": "197.60",
+      "federal_withholding": "0.00",
+      "quebec_withholding": "0.00",
+      "expected_federal_refund_or_balance": "-2578.95",
+      "expected_quebec_refund_or_balance": "-2959.18",
+      "expected_line_count": 536,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    },
+    {
+      "year": 2024,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2024.pdf",
+      "rl1": "release-synthetic-rl1-2024.pdf",
+      "salary": "40000.00",
+      "qpp": "2336.00",
+      "qpp2": "0.00",
+      "ei": "528.00",
+      "ppip": "197.60",
+      "federal_withholding": "0.00",
+      "quebec_withholding": "0.00",
+      "expected_federal_refund_or_balance": "-2480.00",
+      "expected_quebec_refund_or_balance": "-2827.86",
+      "expected_line_count": 571,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    },
+    {
+      "year": 2025,
+      "source": "synthetic_text",
+      "t4": "release-synthetic-t4-2025.pdf",
+      "rl1": "release-synthetic-rl1-2025.pdf",
+      "salary": "50000.00",
+      "qpp": "2976.00",
+      "qpp2": "0.00",
+      "ei": "655.00",
+      "ppip": "247.00",
+      "federal_withholding": "6000.00",
+      "quebec_withholding": "5000.00",
+      "expected_federal_refund_or_balance": "2546.70",
+      "expected_quebec_refund_or_balance": "863.84",
+      "expected_line_count": 620,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "drug_group_plan_months": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "drug_group_plan_source": "self",
+      "drug_eligible_student_months": [],
+      "drug_other_exemption_applies": false,
+      "fixture_fact_sources": {
+        "province_of_employment": "T4 box 10 province of employment",
+        "cpp_qpp_exempt": "T4 box 28 unchecked CPP/QPP exemption indicator",
+        "ei_exempt": "T4 box 28 unchecked EI exemption indicator",
+        "ppip_exempt": "T4 box 28 unchecked PPIP exemption indicator",
+        "drug_group_plan_months": "explicit non-PDF personal fact supplied by release acceptance"
+      }
+    }
+  ]
+}
