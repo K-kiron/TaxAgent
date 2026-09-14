@@ -62,8 +62,11 @@ def _input_digest(data: TaxReturnInput) -> str:
 
 def _annual_ruleset_hash(year: int) -> str:
     digest = hashlib.sha256()
-    for path in (Path(__file__).with_name("models.py"), Path(__file__).with_name("annual_rules.py"), Path(__file__).with_name("gates.py"), Path(__file__).with_name("annual_main_lines.json"), Path(__file__).with_name("engine.py")):
-        digest.update(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n"))
+    for name in ("models.py", "annual_rules.py", "gates.py", "federal_2025_qc.py",
+                 "annual_main_lines.json", "engine.py"):
+        normalized = Path(__file__).with_name(name).read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+        digest.update(len(normalized).to_bytes(8, "big"))
+        digest.update(normalized)
     manifest = {
         source_id: source.model_dump(mode="json")
         for source_id, source in sorted(ALL_SOURCES.items())
@@ -257,7 +260,7 @@ def calculate_return(data: TaxReturnInput) -> TaxReturnResult:
         )
 
     qpp = calculate_qpp_schedule8(data)
-    federal = calculate_federal(data)
+    federal = calculate_federal(data, qpp=qpp)
     if qpp.blockers or federal.blockers:
         return TaxReturnResult(
             status="blocked",
@@ -266,7 +269,7 @@ def calculate_return(data: TaxReturnInput) -> TaxReturnResult:
             input_digest=input_digest,
             blockers=[*qpp.blockers, *federal.blockers],
         )
-    quebec = calculate_quebec(data)
+    quebec = calculate_quebec(data, qpp=qpp, federal=federal)
     if quebec.blockers:
         return TaxReturnResult(
             status="blocked",

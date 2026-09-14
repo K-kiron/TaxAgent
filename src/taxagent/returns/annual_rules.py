@@ -10,6 +10,7 @@ import re
 from types import MappingProxyType
 
 from .models import CompletenessBlocker, LineValue, ScheduleResult, TaxReturnInput
+from .federal_2025_qc import _taxable_scholarships as taxable_scholarships
 from .gates import _advance_payment_blockers, _resp_eap_blockers, _scholarship_blockers
 
 
@@ -258,27 +259,6 @@ def sum_rl1_allocations(data: TaxReturnInput, codes: set[str]) -> Decimal:
     return money(sum((amount for slip in slips(data, "RL1") for code, amount in (slip.rl1_box_o_allocations or {}).items() if code in codes), start=ZERO))
 
 
-def taxable_scholarships(data: TaxReturnInput) -> Decimal:
-    awards = data.scholarships.awards or []
-    gross = sum((award.amount or ZERO for award in awards), start=ZERO)
-    full_time_exemption = ZERO
-    part_time_awards = ZERO
-    programs: set[str] = set()
-    for award in awards:
-        if award.qualifying_student is not True:
-            continue
-        amount = award.amount or ZERO
-        if award.attendance == "full_time":
-            full_time_exemption += min(amount, award.intended_enrolment_support or ZERO)
-        elif award.attendance == "part_time":
-            part_time_awards += amount
-            if award.part_time_program_id:
-                programs.add(award.part_time_program_id)
-    costs = sum((program.eligible_tuition_and_required_materials or ZERO for program in (data.scholarships.part_time_programs or []) if program.program_id in programs), start=ZERO)
-    remaining = max(money(gross - full_time_exemption - min(part_time_awards, costs)), ZERO)
-    return max(money(remaining - min(remaining, D("500"))), ZERO)
-
-
 def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
     year = data.tax_year
     problems: list[CompletenessBlocker] = []
@@ -313,6 +293,17 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
     supported = {"T4", "RL1", "T5", "RL3", "T4A", "T4E", "T2202", "RRSP_RECEIPT", "RC210", "RL19"}
     if any(slip.slip_type.upper() not in supported for slip in data.slips):
         problems.append(blocker("unsupported_slip", "An imported slip is outside annual coverage.", ["slips"], year))
+    if year < 2023 and (
+        slips(data, "RC210")
+        or (data.refundable_credits.advanced_cwb_paid or ZERO) > ZERO
+        or (data.refundable_credits.advanced_cwb_disability_paid or ZERO) > ZERO
+    ):
+        problems.append(blocker(
+            "unsupported_legacy_cwb_advance",
+            "Pre-2023 CWB advance payments require legacy RC210 treatment outside this ruleset.",
+            ["slips", "refundable_credits.advanced_cwb_paid", "refundable_credits.advanced_cwb_disability_paid"],
+            year,
+        ))
     allowed_boxes = {
         "T4": {"14", "17", "18", "20", "22", "24", "26", "44", "52", "55", "56", "57", "58", "59", "60"} | ({"17A"} if year >= 2024 else set()),
         "RL1": {"A", "B" if year < 2024 else "B.A", "B.B" if year >= 2024 else "B", "C", "D", "E", "F", "G", "H", "I", "O", "211"},
@@ -342,10 +333,7 @@ def annual_preflight(data: TaxReturnInput) -> list[CompletenessBlocker]:
         problems.append(blocker("invalid_slip_box_type", "Required slip boxes must be numeric amounts.", invalid_money_boxes, year))
     # These evidence gates do not calculate year-specific tax amounts. Preserve
     # annual source references instead of attaching their 2025 citations.
-    evidence_gates = [_scholarship_blockers, _resp_eap_blockers]
-    if not invalid_money_boxes:
-        evidence_gates.append(_advance_payment_blockers)
-    for gate in evidence_gates:
+    for gate in (_scholarship_blockers, _resp_eap_blockers, _advance_payment_blockers):
         problems.extend(blocker(item.code, item.message, item.input_paths, year) for item in gate(data))
     missing_instalments = [
         f"instalments.{name}"

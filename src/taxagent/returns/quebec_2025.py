@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal, ROUND_HALF_UP
 
-from .federal_2025_qc import calculate_federal, calculate_qpp_schedule8
+from .federal_2025_qc import _sum_box, calculate_federal, calculate_qpp_schedule8
 from .models import LineValue, ScheduleResult, TaxReturnInput
 from .quebec_schedule_f import ScheduleFInput, calculate_quebec_schedule_f
 from .quebec_schedules import (
@@ -60,10 +60,6 @@ def _line(
 
 def _slips(data: TaxReturnInput, slip_type: str):
     return [slip for slip in data.slips if slip.slip_type == slip_type]
-
-
-def _sum_box(data: TaxReturnInput, slip_type: str, box: str) -> Decimal:
-    return _money(sum((slip.fields.get(box, ZERO) for slip in _slips(data, slip_type)), start=ZERO))
 
 
 def _sum_rl1_box_o_allocations(data: TaxReturnInput, codes: set[str]) -> Decimal:
@@ -290,13 +286,20 @@ def calculate_qpp_schedule_u(data: TaxReturnInput) -> ScheduleResult:
     )
 
 
-def calculate_quebec(data: TaxReturnInput) -> ScheduleResult:
-    """Calculate the TP-1 main return and every applicable supported schedule."""
+def calculate_quebec(
+    data: TaxReturnInput, *, qpp: ScheduleResult | None = None,
+    federal: ScheduleResult | None = None,
+) -> ScheduleResult:
+    """Calculate TP-1, optionally reusing federal results for the same input."""
 
-    federal = calculate_federal(data)
+    if qpp is None:
+        qpp = calculate_qpp_schedule8(data)
+    if qpp.blockers:
+        return ScheduleResult(schedule_id="TP1", blockers=qpp.blockers)
+    if federal is None:
+        federal = calculate_federal(data, qpp=qpp)
     if federal.blockers:
         return ScheduleResult(schedule_id="TP1", blockers=federal.blockers)
-    qpp = calculate_qpp_schedule8(data)
     schedule_u = calculate_qpp_schedule_u(data)
 
     employment = _sum_box(data, "RL1", "A")
