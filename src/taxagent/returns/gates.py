@@ -1176,10 +1176,12 @@ def _advance_payment_blockers(data: TaxReturnInput) -> list[CompletenessBlocker]
     blockers: list[CompletenessBlocker] = []
     rc210s = [slip for slip in data.slips if slip.slip_type == "RC210"]
     rc210_basic = sum(
-        (slip.fields.get("10", Decimal("0")) for slip in rc210s), start=Decimal("0")
+        (value for slip in rc210s if isinstance((value := slip.fields.get("10")), Decimal)),
+        start=Decimal("0"),
     )
     rc210_disability = sum(
-        (slip.fields.get("11", Decimal("0")) for slip in rc210s), start=Decimal("0")
+        (value for slip in rc210s if isinstance((value := slip.fields.get("11")), Decimal)),
+        start=Decimal("0"),
     )
     if (credits.advanced_cwb_paid or Decimal("0")) + (
         credits.advanced_cwb_disability_paid or Decimal("0")
@@ -1208,8 +1210,14 @@ def _advance_payment_blockers(data: TaxReturnInput) -> list[CompletenessBlocker]
         )
 
     rl19s = [slip for slip in data.slips if slip.slip_type == "RL19"]
-    rl19_a = sum((slip.fields.get("A", Decimal("0")) for slip in rl19s), start=Decimal("0"))
-    rl19_b = sum((slip.fields.get("B", Decimal("0")) for slip in rl19s), start=Decimal("0"))
+    rl19_a = sum(
+        (value for slip in rl19s if isinstance((value := slip.fields.get("A")), Decimal)),
+        start=Decimal("0"),
+    )
+    rl19_b = sum(
+        (value for slip in rl19s if isinstance((value := slip.fields.get("B")), Decimal)),
+        start=Decimal("0"),
+    )
     if (credits.rl19_box_a or Decimal("0")) + (credits.rl19_box_b or Decimal("0")) > 0 and not rl19s:
         blockers.append(
             _blocker(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator, model_validator
 
 
 LineState = Literal["input", "calculated", "zero", "not_applicable", "blocked"]
@@ -96,6 +96,11 @@ class SlipInput(StrictModel):
     rl1_box_o_allocations: dict[str, NonNegativeMoney] | None = None
     confirmed: StrictBool | None = None
     fields: dict[str, Decimal | str | bool] = Field(default_factory=dict)
+
+    @field_validator("slip_type")
+    @classmethod
+    def normalize_slip_type(cls, value: str) -> str:
+        return value.upper()
 
     @model_validator(mode="after")
     def reject_invalid_money(self) -> "SlipInput":

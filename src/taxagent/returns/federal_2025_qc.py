@@ -813,10 +813,11 @@ def _tuition(
     return tuition_claim, ctc, lines, blockers
 
 
-def calculate_federal(data: TaxReturnInput) -> ScheduleResult:
-    """Calculate the complete federal main return for the declared covered facts."""
+def calculate_federal(data: TaxReturnInput, *, qpp: ScheduleResult | None = None) -> ScheduleResult:
+    """Calculate the federal return, optionally reusing Schedule 8 for the same input."""
 
-    qpp = calculate_qpp_schedule8(data)
+    if qpp is None:
+        qpp = calculate_qpp_schedule8(data)
     if qpp.blockers:
         return ScheduleResult(schedule_id="T1", blockers=qpp.blockers)
 
