@@ -1,0 +1,23 @@
+{
+  "id": "ca_tuition_carryforward_v1",
+  "jurisdiction": "canada_federal",
+  "source_type": "government",
+  "topic": "tuition_amount_carryforward_non_refundable",
+  "tax_year": 2025,
+  "rule_summary": "The federal tuition amount is a NON-REFUNDABLE tax credit. It reduces tax payable; it does not by itself generate a cash refund and it is not paid out in cash. In a given year you can only use enough of the credit to bring federal tax payable to zero; the unused portion is carried forward (or, for current-year tuition, may be transferred). A large refund in a low-income/internship year typically comes from tax WITHHELD at source exceeding the tax actually payable — not from the size of the carryforward. Québec has its own parallel tuition mechanism on the provincial return.",
+  "source_urls": [
+    "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return/tax-return/completing-a-tax-return/deductions-credits-expenses/line-32300-your-tuition-education-textbook-amounts.html",
+    "https://www.revenuquebec.ca/en/citizens/tax-credits/tax-credit-for-tuition-or-examination-fees/"
+  ],
+  "required_facts": [
+    "unused_tuition_amount_federal",
+    "unused_tuition_amount_quebec",
+    "tax_payable_before_credits",
+    "tax_withheld"
+  ],
+  "uncertainty_notes": [
+    "Credit rates and transfer limits are year-specific — verify against the current-year return.",
+    "Refundable vs non-refundable is the key distinction users conflate."
+  ],
+  "last_verified": "2025-11-01"
+}

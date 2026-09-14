@@ -1,0 +1,76 @@
+name: Voluntary trial feedback
+description: Share feedback from trying the prototype without posting tax data.
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please share workflow feedback only. Do not post tax slips, real tax facts, government account screenshots, credentials, prompt logs, uploaded documents, or personally identifying tax information.
+  - type: dropdown
+    id: role
+    attributes:
+      label: Which perspective best fits this trial?
+      options:
+        - Individual exploring the local workflow
+        - Developer reviewing the project
+        - Tax-domain reviewer using synthetic examples
+        - Translator or documentation reviewer
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: start_steps
+    attributes:
+      label: Which start steps did you complete?
+      description: Select only steps tried with synthetic or fake data.
+      options:
+        - label: Created a Python 3.11 environment and installed TaxAgent.
+        - label: Ran `taxagent doctor`.
+        - label: Generated or used repository synthetic fixtures.
+        - label: Started the local browser app.
+        - label: Reached a calculation result or an explicit unsupported-case blocker with synthetic data.
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Trial outcome
+      options:
+        - Completed synthetic happy path
+        - Reached expected blocker
+        - Installation failed
+        - Doctor check failed
+        - Local browser app failed
+        - Documentation was unclear
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: Commands or screens tried
+      description: Mention commands, pages, or synthetic fixtures. Keep details aggregate and non-personal.
+    validations:
+      required: false
+  - type: textarea
+    id: friction
+    attributes:
+      label: What was confusing, missing, or slow?
+      description: Focus on setup, wording, unsupported-case blockers, local workflow, or documentation.
+    validations:
+      required: true
+  - type: textarea
+    id: improvement
+    attributes:
+      label: What would make the next trial easier?
+      description: Suggest small documentation, testing, translation, CLI, or UX improvements.
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I did not include real tax slips, returns, government screenshots, credentials, prompt logs, uploads, or personal tax facts.
+          required: true

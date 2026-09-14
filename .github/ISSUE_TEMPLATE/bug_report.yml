@@ -1,0 +1,61 @@
+name: Synthetic bug report
+description: Report a reproducible problem using synthetic or redacted inputs only.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Do not include real tax slips, tax returns, government account screenshots, credentials, prompt logs, or personal tax facts. Use synthetic fixtures, fake values, or short redacted snippets.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and the expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: synthetic_reproduction
+    attributes:
+      label: Synthetic reproduction
+      description: Provide commands and fake or synthetic input sufficient to reproduce the issue.
+      placeholder: |
+        python scripts/release/provision_synthetic_pdf_fixtures.py
+        taxagent calculate synthetic-input.json --output packet.json
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - CLI
+        - Local browser app
+        - PDF intake
+        - Federal return calculation
+        - Quebec return calculation
+        - Documentation
+        - Packaging or installation
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Python version, TaxAgent command, and installation method. Do not include credentials or paths containing personal names if you do not want them public.
+      placeholder: |
+        OS:
+        Python:
+        Install command:
+        TaxAgent command:
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I used synthetic, fake, or redacted data only.
+          required: true
+        - label: I did not include tax slips, returns, account screenshots, credentials, prompt logs, or government account data.
+          required: true

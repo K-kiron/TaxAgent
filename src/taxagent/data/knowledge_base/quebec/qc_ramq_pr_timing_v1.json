@@ -1,0 +1,27 @@
+{
+  "id": "qc_ramq_pr_timing_v1",
+  "jurisdiction": "ramq",
+  "source_type": "government",
+  "topic": "ramq_coverage_start_date_vs_card_arrival",
+  "tax_year": 2025,
+  "rule_summary": "For RAMQ health-insurance eligibility, the date coverage begins is not the date the physical health card arrives in the mail. For the Québec prescription drug insurance premium on Schedule K, what matters is which months had qualifying prescription drug coverage or an exemption. Health insurance and prescription drug insurance are distinct, so build a month-by-month timeline that separates PR date, application date, health-insurance eligibility or coverage start date, prescription-drug coverage months, exemption months, approval date, and card arrival date.",
+  "source_urls": [
+    "https://www.ramq.gouv.qc.ca/en/citizens/health-insurance/register",
+    "https://www.revenuquebec.ca/en/citizens/income-tax-return/"
+  ],
+  "required_facts": [
+    "pr_date",
+    "ramq_application_date",
+    "health_insurance_eligibility_or_coverage_start_date",
+    "prescription_drug_coverage_months",
+    "schedule_k_exemption_months",
+    "card_arrival_date",
+    "private_group_coverage_months"
+  ],
+  "uncertainty_notes": [
+    "Eligibility/waiting-period rules for new PRs vary by situation — confirm the health-insurance start date from RAMQ records, not the card envelope.",
+    "Do not use the health-card timeline as a substitute for confirming prescription-drug coverage and Schedule K exemptions.",
+    "Do not assume Revenu Québec will automatically reconcile mismatched dates."
+  ],
+  "last_verified": "2025-11-01"
+}

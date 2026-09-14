@@ -1,0 +1,25 @@
+{
+  "id": "qc_ramq_drug_premium_v1",
+  "jurisdiction": "quebec",
+  "source_type": "government",
+  "topic": "quebec_prescription_drug_insurance_premium",
+  "tax_year": 2025,
+  "rule_summary": "Québec residents must have qualifying prescription drug coverage for the whole year, either through a private/group plan or the RAMQ public plan, unless a statutory exemption applies. On the income tax return, Schedule K calculates any prescription drug insurance premium from the month-by-month coverage and exemption facts that Revenu Québec asks for. Having a job does not by itself prove group prescription drug coverage — the employer/internship plan must actually include basic prescription drug insurance. Coverage and exemption status can differ month by month.",
+  "source_urls": [
+    "https://www.revenuquebec.ca/en/citizens/income-tax-return/completing-your-income-tax-return/how-to-complete-your-income-tax-return/line-by-line-help/440-to-479-refund-or-balance-due/line-447/",
+    "https://www.ramq.gouv.qc.ca/en/citizens/prescription-drug-insurance"
+  ],
+  "required_facts": [
+    "province_of_residence",
+    "had_group_prescription_drug_coverage",
+    "group_coverage_months",
+    "eligible_student_or_other_exemption_months",
+    "public_plan_coverage_months"
+  ],
+  "uncertainty_notes": [
+    "Whether an internship/employment plan included BASIC PRESCRIPTION DRUG coverage must be confirmed from plan documents, not inferred from employment.",
+    "Health insurance registration is not the same thing as prescription-drug coverage for Schedule K.",
+    "Thresholds, exemptions, and the Schedule K premium formula change each tax year — verify against the current-year guide."
+  ],
+  "last_verified": "2025-11-01"
+}

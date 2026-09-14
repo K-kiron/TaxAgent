@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TaxAgent local return workspace</title>
+    <link rel="stylesheet" href="/static/local.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Local only · PDF slips · Quebec</p>
+        <h1>Batch return workspace</h1>
+      </div>
+      <div class="top-actions" aria-label="Workspace actions">
+        <button id="load-sample" type="button" class="secondary">Load labelled sample</button>
+        <button id="reset" type="button" class="ghost">Reset memory</button>
+      </div>
+    </header>
+
+    <main>
+      <aside class="rail" aria-label="Workflow">
+        <button type="button" class="step-link active" data-step="documents">PDFs</button>
+        <button type="button" class="step-link" data-step="years">Years</button>
+        <button type="button" class="step-link" data-step="scope">Profile</button>
+        <button type="button" class="step-link" data-step="facts">Review</button>
+        <button type="button" class="step-link" data-step="calculate">Calculate</button>
+        <button type="button" class="step-link" data-step="export">Export</button>
+      </aside>
+
+      <section class="workspace">
+        <div id="banner" class="banner" hidden></div>
+
+        <section id="documents" class="step-panel active" aria-labelledby="documents-title">
+          <div class="section-head">
+            <p class="eyebrow">Evidence intake</p>
+            <h2 id="documents-title">Import slips and receipts from local PDFs</h2>
+          </div>
+          <div class="notice">
+            PDFs stay in this browser session for source preview. The local service extracts candidates and builds a 2020-2025 workspace; ambiguous slips, missing years, amendments, issuers, and duplicate candidates stay in review.
+          </div>
+          <div id="pdf-drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose or drop PDF files">
+            <strong>Drop PDFs here</strong>
+            <span>or choose files from this computer</span>
+            <input id="import-pdfs" type="file" accept="application/pdf,.pdf" multiple />
+          </div>
+          <div class="toolbar">
+            <label class="file-button">
+              <span>Restore JSON</span>
+              <input id="import-json" type="file" accept="application/json,.json" />
+            </label>
+            <button id="add-slip" type="button">Add slip to selected year</button>
+          </div>
+          <div id="batch-status"></div>
+          <div id="collection-links" class="link-strip"></div>
+          <div id="inventory-form" class="grid-form"></div>
+          <div id="slips"></div>
+        </section>
+
+        <section id="years" class="step-panel" aria-labelledby="years-title">
+          <div class="section-head">
+            <p class="eyebrow">2020-2025 workspace</p>
+            <h2 id="years-title">Choose the years that need a return</h2>
+          </div>
+          <div class="toolbar">
+            <button id="create-zero-year" type="button" class="secondary">Create explicit no-slip year</button>
+            <span id="year-state" class="muted" aria-live="polite"></span>
+          </div>
+          <div id="year-overview" class="year-grid"></div>
+          <div id="candidate-review"></div>
+          <div id="evidence-review"></div>
+        </section>
+
+        <section id="scope" class="step-panel" aria-labelledby="scope-title">
+          <div class="section-head">
+            <p class="eyebrow">Supported profile</p>
+            <h2 id="scope-title">Confirm the selected year profile</h2>
+          </div>
+          <div class="notice">
+            These answers apply to the selected year. The current calculator supports Quebec salary/student returns and blocks unsupported branches instead of guessing eligibility.
+          </div>
+          <form id="scope-form" class="grid-form"></form>
+        </section>
+
+        <section id="facts" class="step-panel" aria-labelledby="facts-title">
+          <div class="section-head">
+            <p class="eyebrow">Additional facts</p>
+            <h2 id="facts-title">Answer only what blocks the selected year</h2>
+          </div>
+          <div id="profile-reuse" class="profile-reuse"></div>
+          <div id="missing-facts"></div>
+          <div id="facts-form" class="grid-form"></div>
+        </section>
+
+        <section id="calculate" class="step-panel" aria-labelledby="calculate-title">
+          <div class="section-head">
+            <p class="eyebrow">Return calculation</p>
+            <h2 id="calculate-title">Calculate every ready active year</h2>
+          </div>
+          <div class="toolbar">
+            <button id="calculate-button" type="button" class="primary">Calculate ready years</button>
+            <span id="calculation-state" class="muted" aria-live="polite"></span>
+          </div>
+          <div id="problems"></div>
+          <div id="results"></div>
+        </section>
+
+        <section id="export" class="step-panel" aria-labelledby="export-title">
+          <div class="section-head">
+            <p class="eyebrow">Save and handoff</p>
+            <h2 id="export-title">Export files you choose to keep</h2>
+          </div>
+          <div class="notice">
+            Exports are plaintext files on this computer. Federal and Quebec filing are separate, and these exports are not accepted electronic submission files.
+          </div>
+          <div class="toolbar">
+            <button id="save-input" type="button">Save input JSON</button>
+            <button id="save-result" type="button" disabled>Save result JSON</button>
+            <button id="print-packet" type="button" disabled>Save review packet (.txt)</button>
+          </div>
+          <div id="handoff-links" class="link-strip"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/local.js" defer></script>
+  </body>
+</html>

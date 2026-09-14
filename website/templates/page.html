@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ description }}">
+  <meta name="robots" content="{{ robots }}">
+  <link rel="canonical" href="{{ canonical }}">
+  {{ alternates }}
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TaxAgent Canada">
+  <meta property="og:title" content="{{ title }}">
+  <meta property="og:description" content="{{ description }}">
+  <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:image" content="{{ og_image }}">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="{{ asset_prefix }}assets/site.css">
+  <link rel="icon" href="{{ asset_prefix }}assets/taxagent-logo.png">
+  <script type="application/ld+json">{{ json_ld }}</script>
+</head>
+<body>
+  <a class="skip-link" href="#content">{{ skip_label }}</a>
+  <header class="site-header">
+    <a class="brand" href="{{ home_href }}" aria-label="TaxAgent Canada">
+      <img src="{{ asset_prefix }}assets/taxagent-logo.png" alt="" width="56" height="56">
+      <span>
+        <strong>TaxAgent Canada</strong>
+        <small>{{ brand_note }}</small>
+      </span>
+    </a>
+    <nav aria-label="{{ nav_label }}">
+      {{ nav_links }}
+    </nav>
+    <div class="language-switcher" aria-label="{{ language_label }}">
+      {{ language_links }}
+    </div>
+  </header>
+  <main id="content">
+    {{ body }}
+  </main>
+  <footer class="site-footer">
+    <p>{{ footer_text }}</p>
+    <p>{{ footer_links }}</p>
+  </footer>
+</body>
+</html>
