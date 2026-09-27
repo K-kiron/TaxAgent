@@ -41,7 +41,7 @@ Clone the development preview on `dev` and install the local web extra. Review t
 <summary>Windows PowerShell</summary>
 
 ```powershell
-git clone --branch dev https://github.com/K-kiron/TaxAgent.git
+git clone https://github.com/K-kiron/TaxAgent.git
 cd TaxAgent
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
