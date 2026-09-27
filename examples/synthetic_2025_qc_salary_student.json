@@ -1,0 +1,176 @@
+{
+  "schema_version": "2025-qc-v1",
+  "tax_year": 2025,
+  "province_dec31": "QC",
+  "taxpayer": {
+    "full_year_canada_resident": true,
+    "full_year_quebec_resident": true,
+    "province_dec31": "QC",
+    "age_dec31": 30,
+    "marital_status": "single",
+    "dependant_count": 0,
+    "deceased_return": false,
+    "bankruptcy_return": false,
+    "has_self_employment": false,
+    "has_capital_gains": false,
+    "has_rental_income": false,
+    "has_foreign_income_or_tax": false,
+    "has_foreign_property_over_100k": false,
+    "has_crypto_transactions": false,
+    "has_pension_or_benefit_income": false,
+    "has_indian_act_exempt_income": false,
+    "has_disability_or_caregiver_claim": false,
+    "has_employment_expenses": false,
+    "has_medical_expenses": false,
+    "has_donations": false,
+    "has_childcare_expenses": false,
+    "has_moving_expenses": false,
+    "has_tips_or_other_employment_income": false,
+    "has_student_loan_interest": false,
+    "received_qpp_disability_pension": false,
+    "made_qpp_cpt30_election": false,
+    "was_full_time_student_more_than_13_weeks": false
+  },
+  "slips": [
+    {
+      "slip_type": "T4",
+      "document_id": "synthetic-t4-employer-a",
+      "issuer_id": "synthetic-employer-a",
+      "tax_year": 2025,
+      "province_of_employment": "QC",
+      "cpp_qpp_exempt": false,
+      "ei_exempt": false,
+      "ppip_exempt": false,
+      "confirmed": true,
+      "fields": {
+        "14": "50000.00",
+        "17": "2976.00",
+        "17A": "0.00",
+        "18": "655.00",
+        "20": "0.00",
+        "22": "6000.00",
+        "24": "50000.00",
+        "26": "50000.00",
+        "44": "0.00",
+        "52": "0.00",
+        "55": "247.00"
+      }
+    },
+    {
+      "slip_type": "RL1",
+      "document_id": "synthetic-rl1-employer-a",
+      "issuer_id": "synthetic-employer-a",
+      "tax_year": 2025,
+      "confirmed": true,
+      "fields": {
+        "A": "50000.00",
+        "B.A": "2976.00",
+        "B.B": "0.00",
+        "C": "655.00",
+        "D": "0.00",
+        "E": "5000.00",
+        "F": "0.00",
+        "G": "50000.00",
+        "H": "247.00",
+        "I": "50000.00",
+        "211": "0.00"
+      }
+    }
+  ],
+  "inventory": {
+    "income_sources_reviewed": true,
+    "deductions_reviewed": true,
+    "credits_reviewed": true,
+    "cra_records_reviewed": true,
+    "revenu_quebec_records_reviewed": true,
+    "no_income_sources": false
+  },
+  "federal_tuition": {
+    "has_current_tuition": false,
+    "has_prior_unused": false,
+    "wants_transfer": false,
+    "wants_canada_training_credit": false
+  },
+  "quebec_tuition": {
+    "has_current_tuition": false,
+    "has_prior_unused": false,
+    "wants_transfer": false
+  },
+  "rrsp": {
+    "has_contributions": false,
+    "has_prior_unused_contributions": false,
+    "has_hbp_or_llp_activity": false
+  },
+  "instalments": {
+    "federal_reviewed": true,
+    "federal_paid": "0",
+    "quebec_reviewed": true,
+    "quebec_paid": "0"
+  },
+  "quebec_schedule_b": {
+    "living_alone_reviewed": true,
+    "eligible_for_living_alone_amount": false
+  },
+  "student_loan_interest": {
+    "reviewed": true,
+    "qualifying_government_loans_confirmed": true,
+    "federal_current_year_paid": "0",
+    "federal_unused_2020": "0",
+    "federal_unused_2021": "0",
+    "federal_unused_2022": "0",
+    "federal_unused_2023": "0",
+    "federal_unused_2024": "0",
+    "federal_claim_amount": "0",
+    "quebec_prior_unused": "0",
+    "quebec_current_year_paid": "0",
+    "quebec_claim_amount": "0"
+  },
+  "scholarships": {
+    "reviewed": true,
+    "awards": [],
+    "part_time_programs": []
+  },
+  "resp_eap": {
+    "reviewed": true,
+    "has_other_resp_payments": false,
+    "qesi_cumulative_amount_over_3600": false,
+    "payments": []
+  },
+  "additional_return_screens": {
+    "immigrated_or_emigrated_2025": false,
+    "quebec_trust_return": false,
+    "separate_post_death_return": false,
+    "quebec_enterprise_registration_or_annual_fee": false
+  },
+  "drug_insurance": {
+    "reviewed": true,
+    "group_plan_months": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "group_plan_source": "self",
+    "eligible_student_months": [],
+    "other_exemption_applies": false
+  },
+  "refundable_credits": {
+    "work_premium_answers_reviewed": true,
+    "solidarity_answers_reviewed": true,
+    "canada_workers_benefit_answers_reviewed": true,
+    "rl19_advance_payments_reviewed": true,
+    "rl19_box_a": "0.00",
+    "rl19_box_b": "0.00",
+    "rl19_has_other_advance_boxes": false,
+    "cwb_incarcerated_90_days": false,
+    "cwb_foreign_officer_exempt": false,
+    "advanced_cwb_paid": "0.00",
+    "advanced_cwb_disability_paid": "0.00",
+    "work_premium_eligible_status": true,
+    "quebec_work_premium_full_time_student": false,
+    "transferred_schedule_s_amount": false,
+    "family_allowance_received_for_self": false,
+    "turned_18_before_december": true,
+    "designated_as_dependent_child": false,
+    "incarcerated_over_183_days": false,
+    "adapted_work_premium_eligible": false,
+    "work_premium_supplement_months": 0,
+    "request_tax_shield": false,
+    "wants_solidarity_credit": false
+  }
+}

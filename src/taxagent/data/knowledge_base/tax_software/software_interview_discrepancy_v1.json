@@ -1,0 +1,22 @@
+{
+  "id": "software_interview_discrepancy_v1",
+  "jurisdiction": "quebec",
+  "source_type": "tax_software",
+  "topic": "why_tax_software_products_show_different_questions",
+  "tax_year": 2025,
+  "rule_summary": "Different tax software products (TurboTax, Wealthsimple Tax, UFile) implement their own interview flows over the same underlying federal and Québec forms. A credit or question shown by one product and not another usually means the item is surfaced differently (asked explicitly, computed automatically, gated behind an earlier answer, or not separately shown) — it does NOT by itself mean one product is wrong. To resolve a discrepancy, identify the underlying form/line/credit (e.g. a Québec solidarity or living-alone credit, or a Schedule K premium), then compare the GENERATED federal and provincial forms across products rather than the interview screens.",
+  "source_urls": [
+    "https://www.revenuquebec.ca/en/citizens/income-tax-return/",
+    "https://www.canada.ca/en/revenue-agency/services/tax/individuals/topics/about-your-tax-return.html"
+  ],
+  "required_facts": [
+    "software_products_compared",
+    "credit_or_question_in_dispute",
+    "underlying_form_or_line"
+  ],
+  "uncertainty_notes": [
+    "Software UIs and interview flows change frequently and are NOT an official source — never declare a product correct without inspecting the generated forms.",
+    "Software help pages rank low in the source policy; ground the tax conclusion in CRA/Revenu Québec, not the vendor."
+  ],
+  "last_verified": "2025-11-01"
+}

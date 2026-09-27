@@ -1,0 +1,4 @@
+/official/
+/generated/*
+!/generated/
+!/manifest.json
